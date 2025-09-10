@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import { getCurrentUser, logout } from '@/lib/auth';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
+import AnonymousWarningModal from '@/components/AnonymousWarningModal';
 import Link from 'next/link';
 
 export default function Home() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const currentUser = getCurrentUser();
 
   // 공지사항 데이터 로드
@@ -33,6 +35,18 @@ export default function Home() {
   const handleLogout = async () => {
     await logout();
     window.location.href = '/login';
+  };
+
+  // 익명게시판 클릭 처리
+  const handleAnonymousClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowWarningModal(true);
+  };
+
+  // 주의사항 확인 후 익명게시판으로 이동
+  const handleConfirmAnonymous = () => {
+    setShowWarningModal(false);
+    window.location.href = '/anonymous';
   };
 
   return (
@@ -73,12 +87,12 @@ export default function Home() {
               <div className="py-2 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm">
                 🏢 사내게시판
               </div>
-              <Link
-                href="/anonymous"
+              <button
+                onClick={handleAnonymousClick}
                 className="py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               >
                 🔒 익명게시판
-              </Link>
+              </button>
             </nav>
           </div>
         </div>
@@ -165,14 +179,21 @@ export default function Home() {
           <div className="flex-1 py-3 px-4 text-center text-blue-600 border-t-2 border-blue-600">
             🏢 사내게시판
           </div>
-          <Link
-            href="/anonymous"
+          <button
+            onClick={handleAnonymousClick}
             className="flex-1 py-3 px-4 text-center text-gray-500"
           >
             🔒 익명게시판
-          </Link>
+          </button>
         </div>
       </div>
+
+      {/* 익명게시판 주의사항 모달 */}
+      <AnonymousWarningModal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        onConfirm={handleConfirmAnonymous}
+      />
     </div>
     </AuthGuard>
   );
