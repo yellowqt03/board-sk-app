@@ -4,11 +4,15 @@ import { useState, useEffect } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import { getCurrentUser, logout } from '@/lib/auth';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
+import { getAnonymousPosts, getPostCountsByCategory, getCategoryStyle, type AnonymousPost } from '@/lib/anonymous-posts';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'official' | 'anonymous'>('official');
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [anonymousPosts, setAnonymousPosts] = useState<AnonymousPost[]>([]);
+  const [postCounts, setPostCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
+  const [anonymousLoading, setAnonymousLoading] = useState(true);
   const currentUser = getCurrentUser();
 
   // 공지사항 데이터 로드
@@ -26,6 +30,27 @@ export default function Home() {
     };
 
     loadAnnouncements();
+  }, []);
+
+  // 익명 게시판 데이터 로드
+  useEffect(() => {
+    const loadAnonymousData = async () => {
+      try {
+        setAnonymousLoading(true);
+        const [posts, counts] = await Promise.all([
+          getAnonymousPosts(),
+          getPostCountsByCategory()
+        ]);
+        setAnonymousPosts(posts);
+        setPostCounts(counts);
+      } catch (error) {
+        console.error('익명 게시판 로드 실패:', error);
+      } finally {
+        setAnonymousLoading(false);
+      }
+    };
+
+    loadAnonymousData();
   }, []);
 
   // 로그아웃 처리
@@ -205,37 +230,97 @@ export default function Home() {
             {/* 익명 게시판 카테고리 */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">🔒 익명 게시판</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                  <h3 className="font-medium text-gray-900 flex items-center">
-                    🗣️ 자유게시판
-                    <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">15</span>
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">자유로운 의견을 나누는 공간</p>
+              {anonymousLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  <span className="ml-2 text-gray-600">게시판을 불러오는 중...</span>
                 </div>
-                <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                  <h3 className="font-medium text-gray-900 flex items-center">
-                    💡 건의사항
-                    <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">3</span>
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">회사 개선을 위한 건의사항</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 자유게시판 */}
+                  <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 className="font-medium text-gray-900 flex items-center">
+                      🗣️ 자유게시판
+                      <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        {postCounts[4] || 0}
+                      </span>
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">자유로운 의견을 나누는 공간</p>
+                  </div>
+                  
+                  {/* 건의사항 */}
+                  <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 className="font-medium text-gray-900 flex items-center">
+                      💡 건의사항
+                      <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                        {postCounts[5] || 0}
+                      </span>
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">회사 개선을 위한 건의사항</p>
+                  </div>
+                  
+                  {/* 일상공유 */}
+                  <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 className="font-medium text-gray-900 flex items-center">
+                      😊 일상공유
+                      <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                        {postCounts[6] || 0}
+                      </span>
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">일상적인 이야기를 나누는 공간</p>
+                  </div>
+                  
+                  {/* 불만사항 */}
+                  <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <h3 className="font-medium text-gray-900 flex items-center">
+                      😤 불만사항
+                      <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                        {postCounts[7] || 0}
+                      </span>
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">건설적인 불만사항을 제기하는 공간</p>
+                  </div>
                 </div>
-                <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                  <h3 className="font-medium text-gray-900 flex items-center">
-                    😊 일상공유
-                    <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">8</span>
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">일상적인 이야기를 나누는 공간</p>
-                </div>
-                <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                  <h3 className="font-medium text-gray-900 flex items-center">
-                    😤 불만사항
-                    <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">2</span>
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">건설적인 불만사항을 제기하는 공간</p>
+              )}
+            </div>
+
+            {/* 최근 익명 게시글 */}
+            {!anonymousLoading && anonymousPosts.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">📝 최근 게시글</h2>
+                <div className="space-y-3">
+                  {anonymousPosts.slice(0, 5).map((post) => {
+                    const style = getCategoryStyle(post.category?.name || '');
+                    return (
+                      <div 
+                        key={post.id}
+                        className="border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
+                              {post.title}
+                            </h3>
+                            <div className="flex items-center mt-1 space-x-2">
+                              <span className={`text-xs px-2 py-1 rounded-full ${style.bgColor} ${style.textColor}`}>
+                                {style.icon} {post.category?.name}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {formatTimeAgo(post.created_at)}
+                              </span>
+                              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                <span>👍 {post.likes}</span>
+                                <span>👎 {post.dislikes}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </main>
