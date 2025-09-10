@@ -5,6 +5,7 @@ import AuthGuard from '@/components/AuthGuard';
 import { getCurrentUser, logout } from '@/lib/auth';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
 import { getAnonymousPosts, getPostCountsByCategory, getCategoryStyle, type AnonymousPost } from '@/lib/anonymous-posts';
+import Link from 'next/link';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'official' | 'anonymous'>('official');
@@ -139,9 +140,10 @@ export default function Home() {
                   announcements.map((announcement) => {
                     const style = getPriorityStyle(announcement.priority);
                     return (
-                      <div 
+                      <Link
                         key={announcement.id}
-                        className={`border-l-4 ${style.borderColor} ${style.bgColor} p-4 rounded cursor-pointer hover:shadow-md transition-shadow`}
+                        href={`/announcement/${announcement.id}`}
+                        className={`border-l-4 ${style.borderColor} ${style.bgColor} p-4 rounded cursor-pointer hover:shadow-md transition-shadow block`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -162,7 +164,7 @@ export default function Home() {
                             {formatTimeAgo(announcement.created_at)}
                           </span>
                         </div>
-                      </div>
+                      </Link>
                     );
                   })
                 )}
@@ -292,9 +294,10 @@ export default function Home() {
                   {anonymousPosts.slice(0, 5).map((post) => {
                     const style = getCategoryStyle(post.category?.name || '');
                     return (
-                      <div 
+                      <Link
                         key={post.id}
-                        className="border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
+                        href={`/post/${post.id}`}
+                        className="border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer block"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -315,7 +318,7 @@ export default function Home() {
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     );
                   })}
                 </div>
