@@ -190,7 +190,7 @@ export default function WritePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   카테고리 선택 <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4 w-full">
                   {/* 임시 하드코딩된 카테고리들 */}
                   {[
                     { id: 4, name: '자유게시판', type: 'anonymous' },
