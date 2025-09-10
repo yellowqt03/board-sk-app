@@ -152,31 +152,46 @@ export function getCategoryStyle(categoryName: string) {
       return {
         bgColor: 'bg-blue-100',
         textColor: 'text-blue-800',
-        icon: '🗣️'
+        icon: '🗣️',
+        borderColor: 'border-blue-200',
+        focusRing: 'focus:ring-blue-500',
+        hoverBg: 'hover:bg-blue-50'
       };
     case '건의사항':
       return {
         bgColor: 'bg-green-100',
         textColor: 'text-green-800',
-        icon: '💡'
+        icon: '💡',
+        borderColor: 'border-green-200',
+        focusRing: 'focus:ring-green-500',
+        hoverBg: 'hover:bg-green-50'
       };
     case '일상공유':
       return {
         bgColor: 'bg-yellow-100',
         textColor: 'text-yellow-800',
-        icon: '😊'
+        icon: '😊',
+        borderColor: 'border-yellow-200',
+        focusRing: 'focus:ring-yellow-500',
+        hoverBg: 'hover:bg-yellow-50'
       };
     case '불만사항':
       return {
         bgColor: 'bg-red-100',
         textColor: 'text-red-800',
-        icon: '😤'
+        icon: '😤',
+        borderColor: 'border-red-200',
+        focusRing: 'focus:ring-red-500',
+        hoverBg: 'hover:bg-red-50'
       };
     default:
       return {
         bgColor: 'bg-gray-100',
         textColor: 'text-gray-800',
-        icon: '📝'
+        icon: '📝',
+        borderColor: 'border-gray-200',
+        focusRing: 'focus:ring-gray-500',
+        hoverBg: 'hover:bg-gray-50'
       };
   }
 }

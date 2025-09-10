@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import { getCurrentUser } from '@/lib/auth';
-import { createAnonymousPost } from '@/lib/anonymous-posts';
+import { createAnonymousPost, getCategoryStyle } from '@/lib/anonymous-posts';
 import { supabase } from '@/lib/supabase';
 
 interface BoardCategory {
@@ -24,6 +24,7 @@ export default function WritePage() {
     content: '',
     category_id: 4, // 기본값: 자유게시판
   });
+  const [selectedCategoryName, setSelectedCategoryName] = useState('자유게시판');
   const [error, setError] = useState('');
 
   // 익명 게시판 카테고리 로드
@@ -59,6 +60,16 @@ export default function WritePage() {
       ...prev,
       [name]: name === 'category_id' ? parseInt(value) : value
     }));
+    if (error) setError('');
+  };
+
+  // 카테고리 선택 핸들러
+  const handleCategorySelect = (categoryId: number, categoryName: string) => {
+    setFormData(prev => ({
+      ...prev,
+      category_id: categoryId
+    }));
+    setSelectedCategoryName(categoryName);
     if (error) setError('');
   };
 
@@ -160,22 +171,42 @@ export default function WritePage() {
             <form onSubmit={handleSubmit} className="p-6">
               {/* 카테고리 선택 */}
               <div className="mb-6">
-                <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-2">
-                  카테고리
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  카테고리 선택 <span className="text-red-500">*</span>
                 </label>
-                <select
-                  id="category_id"
-                  name="category_id"
-                  value={formData.category_id}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-2 gap-3">
+                  {categories.map((category) => {
+                    const style = getCategoryStyle(category.name);
+                    const isSelected = formData.category_id === category.id;
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => handleCategorySelect(category.id, category.name)}
+                        className={`p-4 border-2 rounded-lg text-left transition-all duration-200 ${
+                          isSelected
+                            ? `${style.bgColor} ${style.borderColor} border-opacity-100 ring-2 ${style.focusRing} ring-opacity-50`
+                            : `bg-white border-gray-200 hover:${style.hoverBg} hover:${style.borderColor} hover:border-opacity-50`
+                        }`}
+                      >
+                        <div className="flex items-center">
+                          <span className="text-2xl mr-3">{style.icon}</span>
+                          <div>
+                            <h3 className={`font-medium ${isSelected ? style.textColor : 'text-gray-900'}`}>
+                              {category.name}
+                            </h3>
+                            <p className={`text-xs mt-1 ${isSelected ? style.textColor : 'text-gray-500'}`}>
+                              {category.name === '자유게시판' && '자유로운 의견을 나누는 공간'}
+                              {category.name === '건의사항' && '회사 개선을 위한 건의사항'}
+                              {category.name === '일상공유' && '일상적인 이야기를 나누는 공간'}
+                              {category.name === '불만사항' && '건설적인 불만사항을 제기하는 공간'}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* 제목 입력 */}
@@ -183,19 +214,21 @@ export default function WritePage() {
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                   제목 <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="제목을 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  maxLength={200}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {formData.title.length}/200자
-                </p>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="제목을 입력하세요"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg"
+                    maxLength={200}
+                  />
+                  <div className="absolute right-3 top-3 text-xs text-gray-400">
+                    {formData.title.length}/200
+                  </div>
+                </div>
               </div>
 
               {/* 내용 입력 */}
@@ -203,15 +236,20 @@ export default function WritePage() {
                 <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
                   내용 <span className="text-red-500">*</span>
                 </label>
-                <textarea
-                  id="content"
-                  name="content"
-                  value={formData.content}
-                  onChange={handleChange}
-                  placeholder="내용을 입력하세요"
-                  rows={12}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                />
+                <div className="relative">
+                  <textarea
+                    id="content"
+                    name="content"
+                    value={formData.content}
+                    onChange={handleChange}
+                    placeholder="내용을 입력하세요"
+                    rows={12}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  />
+                  <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                    {formData.content.length}자
+                  </div>
+                </div>
               </div>
 
               {/* 에러 메시지 */}
@@ -229,29 +267,37 @@ export default function WritePage() {
               )}
 
               {/* 버튼 */}
-              <div className="flex items-center justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => router.back()}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  disabled={submitting}
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-                >
-                  {submitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      작성 중...
-                    </>
-                  ) : (
-                    '게시글 작성'
-                  )}
-                </button>
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-500">
+                  선택된 카테고리: <span className="font-medium text-gray-900">{selectedCategoryName}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    disabled={submitting}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting || !formData.title.trim() || !formData.content.trim()}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        작성 중...
+                      </>
+                    ) : (
+                      <>
+                        <span className="mr-2">✍️</span>
+                        게시글 작성
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
