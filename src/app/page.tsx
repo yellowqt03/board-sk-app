@@ -1,12 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import { getCurrentUser, logout } from '@/lib/auth';
+import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'official' | 'anonymous'>('official');
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
   const currentUser = getCurrentUser();
+
+  // 공지사항 데이터 로드
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      try {
+        setLoading(true);
+        const data = await getAnnouncements();
+        setAnnouncements(data);
+      } catch (error) {
+        console.error('공지사항 로드 실패:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAnnouncements();
+  }, []);
 
   // 로그아웃 처리
   const handleLogout = async () => {
@@ -81,35 +101,46 @@ export default function Home() {
               
               {/* 공지사항 목록 */}
               <div className="space-y-4">
-                <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-red-800">🚨 긴급: 시스템 점검 안내</h3>
-                      <p className="text-sm text-red-600 mt-1">내일 오후 2시부터 1시간 동안 시스템 점검이 예정되어 있습니다.</p>
-                    </div>
-                    <span className="text-xs text-red-500">2시간 전</span>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-gray-600">공지사항을 불러오는 중...</span>
                   </div>
-                </div>
-                
-                <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-blue-800">📢 12월 휴가 신청 안내</h3>
-                      <p className="text-sm text-blue-600 mt-1">12월 휴가 신청을 받고 있습니다. 12월 20일까지 신청해주세요.</p>
-                    </div>
-                    <span className="text-xs text-blue-500">1일 전</span>
+                ) : announcements.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>등록된 공지사항이 없습니다.</p>
                   </div>
-                </div>
-                
-                <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium text-green-800">🎉 연말 회식 안내</h3>
-                      <p className="text-sm text-green-600 mt-1">12월 28일 연말 회식이 예정되어 있습니다. 참석 여부를 알려주세요.</p>
-                    </div>
-                    <span className="text-xs text-green-500">3일 전</span>
-                  </div>
-                </div>
+                ) : (
+                  announcements.map((announcement) => {
+                    const style = getPriorityStyle(announcement.priority);
+                    return (
+                      <div 
+                        key={announcement.id}
+                        className={`border-l-4 ${style.borderColor} ${style.bgColor} p-4 rounded cursor-pointer hover:shadow-md transition-shadow`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className={`text-sm font-medium ${style.textColor} flex items-center`}>
+                              <span className="mr-2">{style.icon}</span>
+                              {announcement.title}
+                            </h3>
+                            <p className={`text-sm ${style.textColor.replace('800', '600')} mt-1 line-clamp-2`}>
+                              {announcement.content}
+                            </p>
+                            {announcement.author && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                작성자: {announcement.author.name}
+                              </p>
+                            )}
+                          </div>
+                          <span className={`text-xs ${style.textColor.replace('800', '500')} ml-4`}>
+                            {formatTimeAgo(announcement.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
