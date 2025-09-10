@@ -112,7 +112,7 @@ export default function PostDetailPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <button
-                onClick={() => router.back()}
+                onClick={() => router.push('/anonymous')}
                 className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@ export default function PostDetailPage() {
                 </div>
                 <div className="flex items-center space-x-4">
                   <button
-                    onClick={() => router.back()}
+                    onClick={() => router.push('/anonymous')}
                     className="text-purple-600 hover:text-purple-800 font-medium"
                   >
                     목록으로 돌아가기
