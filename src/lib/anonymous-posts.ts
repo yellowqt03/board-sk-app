@@ -76,7 +76,7 @@ export async function getPostCountsByCategory(): Promise<Record<number, number>>
     const { data, error } = await supabase
       .from('anonymous_posts')
       .select('category_id')
-      .eq('category_id', 4); // 익명 게시판 카테고리들만
+      .gte('category_id', 4); // 익명 게시판 카테고리들 (4, 5, 6, 7)
 
     if (error) {
       console.error('카테고리별 게시글 수 조회 오류:', error);
