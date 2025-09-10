@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
-import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, type AnonymousPost } from '@/lib/anonymous-posts';
+import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, type AnonymousPost } from '@/lib/anonymous-posts';
+import { getCurrentUser } from '@/lib/auth';
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -11,6 +12,9 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<AnonymousPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const currentUser = getCurrentUser();
 
   const postId = params.id as string;
 
@@ -38,6 +42,32 @@ export default function PostDetailPage() {
       loadPost();
     }
   }, [postId]);
+
+  // 게시글 삭제 처리
+  const handleDelete = async () => {
+    if (!post || !currentUser) return;
+
+    try {
+      setDeleting(true);
+      const success = await deleteAnonymousPost(post.id, currentUser.employee_id);
+      
+      if (success) {
+        // 삭제 성공 시 익명게시판으로 이동
+        router.push('/anonymous');
+      } else {
+        setError('게시글 삭제에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('게시글 삭제 실패:', err);
+      setError('게시글 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  // 작성자 본인인지 확인
+  const isAuthor = post && currentUser && post.author_employee_id === currentUser.employee_id;
 
   if (loading) {
     return (
@@ -121,6 +151,18 @@ export default function PostDetailPage() {
                     </div>
                   </div>
                 </div>
+                {/* 작성자 본인만 삭제 버튼 표시 */}
+                {isAuthor && (
+                  <div className="ml-4">
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="px-3 py-1 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                      disabled={deleting}
+                    >
+                      🗑️ 삭제
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -182,6 +224,51 @@ export default function PostDetailPage() {
             </div>
           </article>
         </main>
+
+        {/* 삭제 확인 모달 */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full shadow-2xl">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <span className="text-2xl mr-3">⚠️</span>
+                  게시글 삭제 확인
+                </h3>
+              </div>
+              <div className="px-6 py-4">
+                <p className="text-gray-700 mb-4">
+                  정말로 이 게시글을 삭제하시겠습니까?
+                </p>
+                <p className="text-sm text-red-600 mb-4">
+                  삭제된 게시글은 복구할 수 없습니다.
+                </p>
+              </div>
+              <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3 rounded-b-lg">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={deleting}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      삭제 중...
+                    </>
+                  ) : (
+                    '삭제'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AuthGuard>
   );

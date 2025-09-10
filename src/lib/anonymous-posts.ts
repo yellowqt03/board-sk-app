@@ -145,6 +145,27 @@ export async function createAnonymousPost(data: {
   }
 }
 
+// 익명 게시글 삭제
+export async function deleteAnonymousPost(postId: number, authorEmployeeId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('anonymous_posts')
+      .delete()
+      .eq('id', postId)
+      .eq('author_employee_id', authorEmployeeId);
+
+    if (error) {
+      console.error('익명 게시글 삭제 오류:', error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('익명 게시글 삭제 실패:', error);
+    return false;
+  }
+}
+
 // 카테고리별 스타일 반환
 export function getCategoryStyle(categoryName: string) {
   switch (categoryName) {

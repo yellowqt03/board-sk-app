@@ -186,7 +186,7 @@ export default function WritePage() {
                         className={`p-4 border-2 rounded-lg text-left transition-all duration-200 ${
                           isSelected
                             ? `${style.bgColor} ${style.borderColor} border-opacity-100 ring-2 ${style.focusRing} ring-opacity-50`
-                            : `bg-white border-gray-200 hover:${style.hoverBg} hover:${style.borderColor} hover:border-opacity-50`
+                            : `bg-white border-gray-200 hover:bg-gray-50`
                         }`}
                       >
                         <div className="flex items-center">
