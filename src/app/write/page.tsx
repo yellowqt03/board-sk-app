@@ -190,7 +190,7 @@ export default function WritePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   카테고리 선택 <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-2 gap-4 w-full max-w-2xl mx-auto">
                   {/* 임시 하드코딩된 카테고리들 */}
                   {[
                     { id: 4, name: '자유게시판', type: 'anonymous' },
@@ -205,7 +205,7 @@ export default function WritePage() {
                         key={category.id}
                         type="button"
                         onClick={() => handleCategorySelect(category.id, category.name)}
-                        className={`p-4 border-2 rounded-lg text-left transition-all duration-200 ${
+                        className={`p-4 border-2 rounded-lg text-left transition-all duration-200 w-full h-24 ${
                           isSelected
                             ? `${style.bgColor} ${style.borderColor} border-opacity-100 ring-2 ${style.focusRing} ring-opacity-50`
                             : `bg-white border-gray-200 hover:bg-gray-50`
