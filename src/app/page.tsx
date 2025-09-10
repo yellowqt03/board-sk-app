@@ -231,7 +231,16 @@ export default function Home() {
 
             {/* 익명 게시판 카테고리 */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">🔒 익명 게시판</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">🔒 익명 게시판</h2>
+                <Link
+                  href="/write"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center"
+                >
+                  <span className="mr-1">✍️</span>
+                  글쓰기
+                </Link>
+              </div>
               {anonymousLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>

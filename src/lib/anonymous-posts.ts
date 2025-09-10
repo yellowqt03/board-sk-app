@@ -116,6 +116,35 @@ export function formatTimeAgo(dateString: string): string {
   }
 }
 
+// 익명 게시글 작성
+export async function createAnonymousPost(data: {
+  title: string;
+  content: string;
+  category_id: number;
+  author_employee_id: string;
+}): Promise<AnonymousPost | null> {
+  try {
+    const { data: result, error } = await supabase
+      .from('anonymous_posts')
+      .insert(data)
+      .select(`
+        *,
+        category:board_categories(name)
+      `)
+      .single();
+
+    if (error) {
+      console.error('익명 게시글 작성 오류:', error);
+      throw error;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('익명 게시글 작성 실패:', error);
+    return null;
+  }
+}
+
 // 카테고리별 스타일 반환
 export function getCategoryStyle(categoryName: string) {
   switch (categoryName) {
