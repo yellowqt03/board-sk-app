@@ -167,8 +167,16 @@ export async function deleteAnonymousPost(postId: number, authorEmployeeId: stri
 }
 
 // 게시글 투표 (좋아요/싫어요 토글)
-export async function votePost(postId: number, voteType: 'like' | 'dislike' | null): Promise<{ success: boolean; newLikes: number; newDislikes: number }> {
+export async function votePost(postId: number, voteType: 'like' | 'dislike' | null, userEmployeeId: string): Promise<{ success: boolean; newLikes: number; newDislikes: number; userVote: 'like' | 'dislike' | null }> {
   try {
+    // 현재 사용자의 투표 상태 확인
+    const { data: existingVote, error: voteError } = await supabase
+      .from('post_votes')
+      .select('vote_type')
+      .eq('post_id', postId)
+      .eq('user_employee_id', userEmployeeId)
+      .single();
+
     // 현재 좋아요/싫어요 수를 가져옴
     const { data: currentData, error: fetchError } = await supabase
       .from('anonymous_posts')
@@ -178,49 +186,82 @@ export async function votePost(postId: number, voteType: 'like' | 'dislike' | nu
 
     if (fetchError) {
       console.error('게시글 투표 수 조회 오류:', fetchError);
-      return { success: false, newLikes: 0, newDislikes: 0 };
+      return { success: false, newLikes: 0, newDislikes: 0, userVote: null };
     }
 
     const currentLikes = currentData.likes || 0;
     const currentDislikes = currentData.dislikes || 0;
+    const currentUserVote = existingVote?.vote_type || null;
     
     // 새로운 카운트 계산
     let newLikes = currentLikes;
     let newDislikes = currentDislikes;
+    let newUserVote: 'like' | 'dislike' | null = null;
     
     if (voteType === 'like') {
-      // 좋아요 버튼 클릭
-      if (currentLikes > 0) {
-        // 이미 좋아요가 있다면 취소 (감소)
+      if (currentUserVote === 'like') {
+        // 이미 좋아요를 눌렀다면 취소
         newLikes = currentLikes - 1;
+        newUserVote = null;
       } else {
-        // 좋아요가 없다면 추가 (증가)
+        // 좋아요 추가
         newLikes = currentLikes + 1;
-        // 싫어요가 있다면 1 감소
-        if (currentDislikes > 0) {
+        newUserVote = 'like';
+        
+        // 기존에 싫어요가 있었다면 취소
+        if (currentUserVote === 'dislike') {
           newDislikes = currentDislikes - 1;
         }
       }
     } else if (voteType === 'dislike') {
-      // 싫어요 버튼 클릭
-      if (currentDislikes > 0) {
-        // 이미 싫어요가 있다면 취소 (감소)
+      if (currentUserVote === 'dislike') {
+        // 이미 싫어요를 눌렀다면 취소
         newDislikes = currentDislikes - 1;
+        newUserVote = null;
       } else {
-        // 싫어요가 없다면 추가 (증가)
+        // 싫어요 추가
         newDislikes = currentDislikes + 1;
-        // 좋아요가 있다면 1 감소
-        if (currentLikes > 0) {
+        newUserVote = 'dislike';
+        
+        // 기존에 좋아요가 있었다면 취소
+        if (currentUserVote === 'like') {
           newLikes = currentLikes - 1;
         }
       }
-    } else {
-      // 투표 취소 (현재 상태에 따라 감소)
-      // 이 경우는 클라이언트에서 처리
-      return { success: true, newLikes: currentLikes, newDislikes: currentDislikes };
     }
 
-    // 데이터베이스 업데이트
+    // 사용자 투표 상태 업데이트
+    if (newUserVote === null) {
+      // 투표 취소 - 기존 투표 삭제
+      if (currentUserVote) {
+        await supabase
+          .from('post_votes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_employee_id', userEmployeeId);
+      }
+    } else {
+      // 투표 추가/변경
+      if (currentUserVote) {
+        // 기존 투표 업데이트
+        await supabase
+          .from('post_votes')
+          .update({ vote_type: newUserVote, updated_at: new Date().toISOString() })
+          .eq('post_id', postId)
+          .eq('user_employee_id', userEmployeeId);
+      } else {
+        // 새 투표 추가
+        await supabase
+          .from('post_votes')
+          .insert({
+            post_id: postId,
+            user_employee_id: userEmployeeId,
+            vote_type: newUserVote
+          });
+      }
+    }
+
+    // 게시글 좋아요/싫어요 수 업데이트
     const { error } = await supabase
       .from('anonymous_posts')
       .update({ 
@@ -231,25 +272,47 @@ export async function votePost(postId: number, voteType: 'like' | 'dislike' | nu
 
     if (error) {
       console.error('게시글 투표 오류:', error);
-      return { success: false, newLikes: currentLikes, newDislikes: currentDislikes };
+      return { success: false, newLikes: currentLikes, newDislikes: currentDislikes, userVote: currentUserVote };
     }
 
-    return { success: true, newLikes, newDislikes };
+    return { success: true, newLikes, newDislikes, userVote: newUserVote };
   } catch (error) {
     console.error('게시글 투표 중 오류 발생:', error);
-    return { success: false, newLikes: 0, newDislikes: 0 };
+    return { success: false, newLikes: 0, newDislikes: 0, userVote: null };
+  }
+}
+
+// 사용자의 게시글 투표 상태 가져오기
+export async function getUserPostVote(postId: number, userEmployeeId: string): Promise<'like' | 'dislike' | null> {
+  try {
+    const { data, error } = await supabase
+      .from('post_votes')
+      .select('vote_type')
+      .eq('post_id', postId)
+      .eq('user_employee_id', userEmployeeId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116은 데이터가 없을 때 발생
+      console.error('사용자 투표 상태 조회 오류:', error);
+      return null;
+    }
+
+    return data?.vote_type || null;
+  } catch (error) {
+    console.error('사용자 투표 상태 조회 중 오류 발생:', error);
+    return null;
   }
 }
 
 // 게시글 좋아요 (하위 호환성을 위해 유지)
 export async function likePost(postId: number): Promise<boolean> {
-  const result = await votePost(postId, 'like');
+  const result = await votePost(postId, 'like', '');
   return result.success;
 }
 
 // 게시글 싫어요 (하위 호환성을 위해 유지)
 export async function dislikePost(postId: number): Promise<boolean> {
-  const result = await votePost(postId, 'dislike');
+  const result = await votePost(postId, 'dislike', '');
   return result.success;
 }
 

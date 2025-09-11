@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCommentsByPostId, createComment, deleteComment, voteComment, formatTimeAgo, CommentWithAuthor } from '@/lib/comments';
+import { getCommentsByPostId, createComment, deleteComment, voteComment, getUserCommentVote, formatTimeAgo, CommentWithAuthor } from '@/lib/comments';
 import { getUserVoteState, setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -26,13 +26,16 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
       const commentsData = await getCommentsByPostId(postId);
       setComments(commentsData);
       
-      // 각 댓글의 사용자 투표 상태 로드
-      const votes = new Map<number, VoteType>();
-      commentsData.forEach(comment => {
-        const voteState = getUserVoteState(postId, comment.id);
-        votes.set(comment.id, voteState);
-      });
-      setCommentVotes(votes);
+      // 현재 사용자의 실제 투표 상태 로드
+      if (currentUser) {
+        const votes = new Map<number, VoteType>();
+        for (const comment of commentsData) {
+          const userVoteState = await getUserCommentVote(comment.id, currentUser.employee_id);
+          votes.set(comment.id, userVoteState);
+          setUserVoteState(postId, userVoteState, comment.id);
+        }
+        setCommentVotes(votes);
+      }
     } catch (error) {
       console.error('댓글 로드 오류:', error);
     } finally {
@@ -51,9 +54,14 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
   };
 
   useEffect(() => {
-    loadComments();
     loadCurrentUser();
-  }, [postId]);
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      loadComments();
+    }
+  }, [postId, currentUser]);
 
   // 댓글 작성
   const handleSubmitComment = async (e: React.FormEvent) => {
@@ -81,13 +89,13 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
 
   // 댓글 투표 처리 (좋아요/싫어요 토글)
   const handleCommentVote = async (commentId: number, voteType: 'like' | 'dislike') => {
-    if (votingComments.has(commentId)) return;
+    if (votingComments.has(commentId) || !currentUser) return;
 
     try {
       setVotingComments(prev => new Set(prev).add(commentId));
       
       // 서버에서 토글 로직을 처리하므로 voteType을 그대로 전달
-      const result = await voteComment(commentId, voteType);
+      const result = await voteComment(commentId, voteType, currentUser.employee_id);
       
       if (result.success) {
         // 성공 시 로컬 상태 업데이트
@@ -101,28 +109,13 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
             : comment
         ));
         
-        // 사용자 투표 상태 업데이트 (토글 로직)
-        const currentComment = comments.find(c => c.id === commentId);
-        const currentLikes = currentComment?.likes || 0;
-        const currentDislikes = currentComment?.dislikes || 0;
-        const newLikes = result.newLikes;
-        const newDislikes = result.newDislikes;
-        
-        let newVoteType: VoteType = null;
-        if (newLikes > currentLikes) {
-          newVoteType = 'like';
-        } else if (newDislikes > currentDislikes) {
-          newVoteType = 'dislike';
-        } else if (newLikes < currentLikes || newDislikes < currentDislikes) {
-          newVoteType = null; // 투표 취소
-        }
-        
+        // 사용자 투표 상태 업데이트
         setCommentVotes(prev => {
           const newMap = new Map(prev);
-          newMap.set(commentId, newVoteType);
+          newMap.set(commentId, result.userVote);
           return newMap;
         });
-        setUserVoteState(postId, newVoteType, commentId);
+        setUserVoteState(postId, result.userVote, commentId);
       } else {
         alert('댓글 투표 처리에 실패했습니다.');
       }

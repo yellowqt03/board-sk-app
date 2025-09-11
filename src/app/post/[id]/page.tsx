@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
-import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, votePost, type AnonymousPost } from '@/lib/anonymous-posts';
+import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, votePost, getUserPostVote, type AnonymousPost } from '@/lib/anonymous-posts';
 import { getUserVoteState, setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
 import { getCurrentUser } from '@/lib/auth';
 import CommentsSection from '@/components/CommentsSection';
@@ -32,9 +32,13 @@ export default function PostDetailPage() {
         const data = await getAnonymousPostById(parseInt(postId));
         if (data) {
           setPost(data);
-          // 사용자 투표 상태 로드
-          const voteState = getUserVoteState(data.id);
-          setUserVote(voteState);
+          
+          // 현재 사용자의 실제 투표 상태 로드
+          if (currentUser) {
+            const userVoteState = await getUserPostVote(data.id, currentUser.employee_id);
+            setUserVote(userVoteState);
+            setUserVoteState(data.id, userVoteState);
+          }
         } else {
           setError('게시글을 찾을 수 없습니다.');
         }
@@ -76,13 +80,13 @@ export default function PostDetailPage() {
 
   // 투표 처리 (좋아요/싫어요 토글)
   const handleVote = async (voteType: 'like' | 'dislike') => {
-    if (!post || voting) return;
+    if (!post || !currentUser || voting) return;
 
     try {
       setVoting(true);
       
       // 서버에서 토글 로직을 처리하므로 voteType을 그대로 전달
-      const result = await votePost(post.id, voteType);
+      const result = await votePost(post.id, voteType, currentUser.employee_id);
       
       if (result.success) {
         // 성공 시 로컬 상태 업데이트
@@ -92,23 +96,9 @@ export default function PostDetailPage() {
           dislikes: result.newDislikes
         } : null);
         
-        // 사용자 투표 상태 업데이트 (토글 로직)
-        const currentLikes = post.likes || 0;
-        const currentDislikes = post.dislikes || 0;
-        const newLikes = result.newLikes;
-        const newDislikes = result.newDislikes;
-        
-        let newVoteType: VoteType = null;
-        if (newLikes > currentLikes) {
-          newVoteType = 'like';
-        } else if (newDislikes > currentDislikes) {
-          newVoteType = 'dislike';
-        } else if (newLikes < currentLikes || newDislikes < currentDislikes) {
-          newVoteType = null; // 투표 취소
-        }
-        
-        setUserVote(newVoteType);
-        setUserVoteState(post.id, newVoteType);
+        // 사용자 투표 상태 업데이트
+        setUserVote(result.userVote);
+        setUserVoteState(post.id, result.userVote);
       } else {
         alert('투표 처리에 실패했습니다.');
       }
