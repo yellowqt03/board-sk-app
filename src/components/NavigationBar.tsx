@@ -41,7 +41,7 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
   if (loading) {
     return (
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-900">💬 SK 톡톡</h1>

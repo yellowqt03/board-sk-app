@@ -52,7 +52,7 @@ export default function Home() {
       <NavigationBar showUserInfo={true} />
 
       {/* 메인 컨텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 탭 네비게이션 */}
         <div className="mb-8">
           <div className="border-b border-gray-200">
