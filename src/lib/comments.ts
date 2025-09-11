@@ -97,9 +97,22 @@ export async function deleteComment(commentId: number, authorEmployeeId: string)
 // 댓글 좋아요/싫어요 (향후 구현)
 export async function likeComment(commentId: number): Promise<boolean> {
   try {
+    // 먼저 현재 좋아요 수를 가져옴
+    const { data: currentData, error: fetchError } = await supabase
+      .from('anonymous_comments')
+      .select('likes')
+      .eq('id', commentId)
+      .single();
+
+    if (fetchError) {
+      console.error('댓글 좋아요 수 조회 오류:', fetchError);
+      return false;
+    }
+
+    // 좋아요 수를 1 증가시켜 업데이트
     const { error } = await supabase
       .from('anonymous_comments')
-      .update({ likes: supabase.raw('likes + 1') })
+      .update({ likes: (currentData.likes || 0) + 1 })
       .eq('id', commentId);
 
     if (error) {
@@ -116,9 +129,22 @@ export async function likeComment(commentId: number): Promise<boolean> {
 
 export async function dislikeComment(commentId: number): Promise<boolean> {
   try {
+    // 먼저 현재 싫어요 수를 가져옴
+    const { data: currentData, error: fetchError } = await supabase
+      .from('anonymous_comments')
+      .select('dislikes')
+      .eq('id', commentId)
+      .single();
+
+    if (fetchError) {
+      console.error('댓글 싫어요 수 조회 오류:', fetchError);
+      return false;
+    }
+
+    // 싫어요 수를 1 증가시켜 업데이트
     const { error } = await supabase
       .from('anonymous_comments')
-      .update({ dislikes: supabase.raw('dislikes + 1') })
+      .update({ dislikes: (currentData.dislikes || 0) + 1 })
       .eq('id', commentId);
 
     if (error) {
