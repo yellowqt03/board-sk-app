@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCommentsByPostId, createComment, deleteComment, formatTimeAgo, CommentWithAuthor } from '@/lib/comments';
+import { getCommentsByPostId, createComment, deleteComment, likeComment, dislikeComment, formatTimeAgo, CommentWithAuthor } from '@/lib/comments';
 import { getCurrentUser } from '@/lib/auth';
 
 interface CommentsSectionProps {
@@ -15,6 +15,8 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [likingComments, setLikingComments] = useState<Set<number>>(new Set());
+  const [dislikingComments, setDislikingComments] = useState<Set<number>>(new Set());
 
   // 댓글 로드
   const loadComments = async () => {
@@ -65,6 +67,66 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
       alert('댓글 작성 중 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // 댓글 좋아요
+  const handleLikeComment = async (commentId: number) => {
+    if (likingComments.has(commentId) || dislikingComments.has(commentId)) return;
+
+    try {
+      setLikingComments(prev => new Set(prev).add(commentId));
+      const success = await likeComment(commentId);
+      
+      if (success) {
+        // 성공 시 로컬 상태 업데이트
+        setComments(prev => prev.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, likes: comment.likes + 1 }
+            : comment
+        ));
+      } else {
+        alert('댓글 좋아요 처리에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('댓글 좋아요 오류:', error);
+      alert('댓글 좋아요 처리 중 오류가 발생했습니다.');
+    } finally {
+      setLikingComments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(commentId);
+        return newSet;
+      });
+    }
+  };
+
+  // 댓글 싫어요
+  const handleDislikeComment = async (commentId: number) => {
+    if (likingComments.has(commentId) || dislikingComments.has(commentId)) return;
+
+    try {
+      setDislikingComments(prev => new Set(prev).add(commentId));
+      const success = await dislikeComment(commentId);
+      
+      if (success) {
+        // 성공 시 로컬 상태 업데이트
+        setComments(prev => prev.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, dislikes: comment.dislikes + 1 }
+            : comment
+        ));
+      } else {
+        alert('댓글 싫어요 처리에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('댓글 싫어요 오류:', error);
+      alert('댓글 싫어요 처리 중 오류가 발생했습니다.');
+    } finally {
+      setDislikingComments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(commentId);
+        return newSet;
+      });
     }
   };
 
@@ -171,11 +233,34 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
                 </p>
                 
                 <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                  <button className="flex items-center gap-1 hover:text-blue-600">
-                    👍 {comment.likes}
+                  <button 
+                    onClick={() => handleLikeComment(comment.id)}
+                    disabled={likingComments.has(comment.id) || dislikingComments.has(comment.id)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                      likingComments.has(comment.id)
+                        ? 'bg-blue-200 text-blue-700 cursor-not-allowed'
+                        : 'hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                  >
+                    <span>👍</span>
+                    <span>
+                      {likingComments.has(comment.id) ? '처리 중...' : comment.likes}
+                    </span>
                   </button>
-                  <button className="flex items-center gap-1 hover:text-red-600">
-                    👎 {comment.dislikes}
+                  
+                  <button 
+                    onClick={() => handleDislikeComment(comment.id)}
+                    disabled={likingComments.has(comment.id) || dislikingComments.has(comment.id)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                      dislikingComments.has(comment.id)
+                        ? 'bg-red-200 text-red-700 cursor-not-allowed'
+                        : 'hover:text-red-600 hover:bg-red-50'
+                    }`}
+                  >
+                    <span>👎</span>
+                    <span>
+                      {dislikingComments.has(comment.id) ? '처리 중...' : comment.dislikes}
+                    </span>
                   </button>
                 </div>
               </div>

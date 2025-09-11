@@ -166,6 +166,72 @@ export async function deleteAnonymousPost(postId: number, authorEmployeeId: stri
   }
 }
 
+// 게시글 좋아요
+export async function likePost(postId: number): Promise<boolean> {
+  try {
+    // 먼저 현재 좋아요 수를 가져옴
+    const { data: currentData, error: fetchError } = await supabase
+      .from('anonymous_posts')
+      .select('likes')
+      .eq('id', postId)
+      .single();
+
+    if (fetchError) {
+      console.error('게시글 좋아요 수 조회 오류:', fetchError);
+      return false;
+    }
+
+    // 좋아요 수를 1 증가시켜 업데이트
+    const { error } = await supabase
+      .from('anonymous_posts')
+      .update({ likes: (currentData.likes || 0) + 1 })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('게시글 좋아요 오류:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('게시글 좋아요 중 오류 발생:', error);
+    return false;
+  }
+}
+
+// 게시글 싫어요
+export async function dislikePost(postId: number): Promise<boolean> {
+  try {
+    // 먼저 현재 싫어요 수를 가져옴
+    const { data: currentData, error: fetchError } = await supabase
+      .from('anonymous_posts')
+      .select('dislikes')
+      .eq('id', postId)
+      .single();
+
+    if (fetchError) {
+      console.error('게시글 싫어요 수 조회 오류:', fetchError);
+      return false;
+    }
+
+    // 싫어요 수를 1 증가시켜 업데이트
+    const { error } = await supabase
+      .from('anonymous_posts')
+      .update({ dislikes: (currentData.dislikes || 0) + 1 })
+      .eq('id', postId);
+
+    if (error) {
+      console.error('게시글 싫어요 오류:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('게시글 싫어요 중 오류 발생:', error);
+    return false;
+  }
+}
+
 // 카테고리별 스타일 반환
 export function getCategoryStyle(categoryName: string) {
   switch (categoryName) {

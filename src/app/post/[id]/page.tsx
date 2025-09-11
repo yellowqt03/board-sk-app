@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
-import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, type AnonymousPost } from '@/lib/anonymous-posts';
+import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, likePost, dislikePost, type AnonymousPost } from '@/lib/anonymous-posts';
 import { getCurrentUser } from '@/lib/auth';
 import CommentsSection from '@/components/CommentsSection';
 
@@ -16,6 +16,8 @@ export default function PostDetailPage() {
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [liking, setLiking] = useState(false);
+  const [disliking, setDisliking] = useState(false);
   const currentUser = getCurrentUser();
 
   const postId = params.id as string;
@@ -65,6 +67,50 @@ export default function PostDetailPage() {
     } finally {
       setDeleting(false);
       setShowDeleteConfirm(false);
+    }
+  };
+
+  // 좋아요 처리
+  const handleLike = async () => {
+    if (!post || liking || disliking) return;
+
+    try {
+      setLiking(true);
+      const success = await likePost(post.id);
+      
+      if (success) {
+        // 성공 시 로컬 상태 업데이트
+        setPost(prev => prev ? { ...prev, likes: prev.likes + 1 } : null);
+      } else {
+        alert('좋아요 처리에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('좋아요 처리 실패:', err);
+      alert('좋아요 처리 중 오류가 발생했습니다.');
+    } finally {
+      setLiking(false);
+    }
+  };
+
+  // 싫어요 처리
+  const handleDislike = async () => {
+    if (!post || liking || disliking) return;
+
+    try {
+      setDisliking(true);
+      const success = await dislikePost(post.id);
+      
+      if (success) {
+        // 성공 시 로컬 상태 업데이트
+        setPost(prev => prev ? { ...prev, dislikes: prev.dislikes + 1 } : null);
+      } else {
+        alert('싫어요 처리에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('싫어요 처리 실패:', err);
+      alert('싫어요 처리 중 오류가 발생했습니다.');
+    } finally {
+      setDisliking(false);
     }
   };
 
@@ -164,13 +210,33 @@ export default function PostDetailPage() {
             {/* 반응 버튼 */}
             <div className="px-6 py-4 bg-gray-50 border-t">
               <div className="flex items-center justify-center space-x-8">
-                <button className="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                <button 
+                  onClick={handleLike}
+                  disabled={liking || disliking}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    liking 
+                      ? 'bg-blue-200 text-blue-700 cursor-not-allowed' 
+                      : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                  }`}
+                >
                   <span>👍</span>
-                  <span>좋아요 ({post.likes})</span>
+                  <span>
+                    {liking ? '처리 중...' : `좋아요 (${post.likes})`}
+                  </span>
                 </button>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
+                <button 
+                  onClick={handleDislike}
+                  disabled={liking || disliking}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    disliking 
+                      ? 'bg-red-200 text-red-700 cursor-not-allowed' 
+                      : 'bg-red-50 text-red-600 hover:bg-red-100'
+                  }`}
+                >
                   <span>👎</span>
-                  <span>싫어요 ({post.dislikes})</span>
+                  <span>
+                    {disliking ? '처리 중...' : `싫어요 (${post.dislikes})`}
+                  </span>
                 </button>
                 <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
                   <span>💬</span>
