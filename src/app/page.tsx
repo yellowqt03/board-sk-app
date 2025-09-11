@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import AuthGuard from '@/components/AuthGuard';
-import { getCurrentUser, logout } from '@/lib/auth';
+import NavigationBar from '@/components/NavigationBar';
+import { getCurrentUser } from '@/lib/auth';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
 import AnonymousWarningModal from '@/components/AnonymousWarningModal';
 import Link from 'next/link';
@@ -31,11 +32,6 @@ export default function Home() {
   }, []);
 
 
-  // 로그아웃 처리
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = '/login';
-  };
 
   // 익명게시판 클릭 처리
   const handleAnonymousClick = (e: React.MouseEvent) => {
@@ -52,31 +48,8 @@ export default function Home() {
   return (
     <AuthGuard>
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">💬 SK 톡톡</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              {currentUser && (
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-600">
-                    안녕하세요, <span className="font-medium">{currentUser.name}</span>님
-                  </span>
-                  <button 
-                    onClick={handleLogout}
-                    className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1 rounded-md hover:bg-gray-100 transition-colors"
-                  >
-                    로그아웃
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* 네비게이션 바 */}
+      <NavigationBar showUserInfo={true} />
 
       {/* 메인 컨텐츠 */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

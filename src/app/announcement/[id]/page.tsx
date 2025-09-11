@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
+import NavigationBar from '@/components/NavigationBar';
 import { getAnnouncementById, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
 
 export default function AnnouncementDetailPage() {
@@ -77,24 +78,8 @@ export default function AnnouncementDetailPage() {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
-        {/* 헤더 */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <button
-                onClick={() => router.back()}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                뒤로 가기
-              </button>
-              <h1 className="text-xl font-bold text-gray-900">💬 SK 톡톡</h1>
-              <div className="w-20"></div> {/* 공간 확보 */}
-            </div>
-          </div>
-        </header>
+        {/* 네비게이션 바 */}
+        <NavigationBar showUserInfo={false} />
 
         {/* 메인 컨텐츠 */}
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

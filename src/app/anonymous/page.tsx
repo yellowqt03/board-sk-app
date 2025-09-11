@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
+import NavigationBar from '@/components/NavigationBar';
 import { getAnonymousPosts, getPostCountsByCategory, getCategoryStyle, formatTimeAgo, type AnonymousPost } from '@/lib/anonymous-posts';
 import Link from 'next/link';
 
@@ -13,6 +14,8 @@ export default function AnonymousBoardPage() {
   const [postCounts, setPostCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 10;
 
   // 익명 게시판 데이터 로드
   useEffect(() => {
@@ -48,34 +51,26 @@ export default function AnonymousBoardPage() {
       const filtered = anonymousPosts.filter(post => post.category_id === categoryId);
       setFilteredPosts(filtered);
     }
+    setCurrentPage(1); // 카테고리 변경 시 첫 페이지로
   };
 
-  // 뒤로가기
-  const handleBack = () => {
-    router.push('/');
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+
+  // 페이지 변경
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gray-50">
-        {/* 헤더 */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <button
-                onClick={handleBack}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                뒤로 가기
-              </button>
-              <h1 className="text-xl font-bold text-gray-900">💬 SK 톡톡</h1>
-              <div className="w-20"></div>
-            </div>
-          </div>
-        </header>
+        {/* 네비게이션 바 */}
+        <NavigationBar showUserInfo={false} />
 
         {/* 메인 컨텐츠 */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -186,12 +181,12 @@ export default function AnonymousBoardPage() {
                   )}
                 </div>
                 <div className="space-y-3">
-                  {filteredPosts.length === 0 ? (
+                  {currentPosts.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <p>등록된 게시글이 없습니다.</p>
                     </div>
                   ) : (
-                    filteredPosts.map((post) => {
+                    currentPosts.map((post) => {
                       const style = getCategoryStyle(post.category?.name || '');
                       return (
                         <Link
@@ -199,22 +194,40 @@ export default function AnonymousBoardPage() {
                           href={`/post/${post.id}`}
                           className="border rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer block"
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
-                                {post.title}
-                              </h3>
-                              <div className="flex items-center mt-1 space-x-2">
-                                <span className={`text-xs px-2 py-1 rounded-full ${style.bgColor} ${style.textColor}`}>
-                                  {style.icon} {post.category?.name}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {formatTimeAgo(post.created_at)}
-                                </span>
-                                <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                  <span>👍 {post.likes}</span>
-                                  <span>👎 {post.dislikes}</span>
-                                </div>
+                          {/* 웹 버전: 한 줄 레이아웃 */}
+                          <div className="hidden md:flex items-center justify-between">
+                            <div className="flex items-center space-x-4 flex-1">
+                              <span className={`text-xs px-2 py-1 rounded-full ${style.bgColor} ${style.textColor} whitespace-nowrap`}>
+                                {style.icon} {post.category?.name}
+                              </span>
+                              <span className="text-xs text-gray-500 whitespace-nowrap">
+                                {formatTimeAgo(post.created_at)}
+                              </span>
+                              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                <span>👍 {post.likes}</span>
+                                <span>👎 {post.dislikes}</span>
+                              </div>
+                            </div>
+                            <h3 className="text-sm font-medium text-gray-900 text-right flex-1">
+                              {post.title}
+                            </h3>
+                          </div>
+
+                          {/* 모바일 버전: 두 줄 레이아웃 */}
+                          <div className="md:hidden">
+                            <h3 className="text-sm font-medium text-gray-900 line-clamp-1 mb-2">
+                              {post.title}
+                            </h3>
+                            <div className="flex items-center space-x-2">
+                              <span className={`text-xs px-2 py-1 rounded-full ${style.bgColor} ${style.textColor}`}>
+                                {style.icon} {post.category?.name}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {formatTimeAgo(post.created_at)}
+                              </span>
+                              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                <span>👍 {post.likes}</span>
+                                <span>👎 {post.dislikes}</span>
                               </div>
                             </div>
                           </div>
@@ -223,6 +236,41 @@ export default function AnonymousBoardPage() {
                     })
                   )}
                 </div>
+
+                {/* 페이지네이션 */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center space-x-2 mt-6">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      이전
+                    </button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-2 text-sm border rounded-lg ${
+                          currentPage === page
+                            ? 'bg-purple-600 text-white border-purple-600'
+                            : 'border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      다음
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
