@@ -189,16 +189,30 @@ export async function votePost(postId: number, voteType: 'like' | 'dislike' | nu
     let newDislikes = currentDislikes;
     
     if (voteType === 'like') {
-      newLikes = currentLikes + 1;
-      // 싫어요가 있다면 1 감소
-      if (currentDislikes > 0) {
-        newDislikes = currentDislikes - 1;
+      // 좋아요 버튼 클릭
+      if (currentLikes > 0) {
+        // 이미 좋아요가 있다면 취소 (감소)
+        newLikes = currentLikes - 1;
+      } else {
+        // 좋아요가 없다면 추가 (증가)
+        newLikes = currentLikes + 1;
+        // 싫어요가 있다면 1 감소
+        if (currentDislikes > 0) {
+          newDislikes = currentDislikes - 1;
+        }
       }
     } else if (voteType === 'dislike') {
-      newDislikes = currentDislikes + 1;
-      // 좋아요가 있다면 1 감소
-      if (currentLikes > 0) {
-        newLikes = currentLikes - 1;
+      // 싫어요 버튼 클릭
+      if (currentDislikes > 0) {
+        // 이미 싫어요가 있다면 취소 (감소)
+        newDislikes = currentDislikes - 1;
+      } else {
+        // 싫어요가 없다면 추가 (증가)
+        newDislikes = currentDislikes + 1;
+        // 좋아요가 있다면 1 감소
+        if (currentLikes > 0) {
+          newLikes = currentLikes - 1;
+        }
       }
     } else {
       // 투표 취소 (현재 상태에 따라 감소)

@@ -86,11 +86,8 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
     try {
       setVotingComments(prev => new Set(prev).add(commentId));
       
-      // 현재 투표 상태와 같은 버튼을 누르면 취소
-      const currentVote = commentVotes.get(commentId);
-      const newVoteType = currentVote === voteType ? null : voteType;
-      
-      const result = await voteComment(commentId, newVoteType);
+      // 서버에서 토글 로직을 처리하므로 voteType을 그대로 전달
+      const result = await voteComment(commentId, voteType);
       
       if (result.success) {
         // 성공 시 로컬 상태 업데이트
@@ -104,7 +101,22 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
             : comment
         ));
         
-        // 사용자 투표 상태 업데이트
+        // 사용자 투표 상태 업데이트 (토글 로직)
+        const currentComment = comments.find(c => c.id === commentId);
+        const currentLikes = currentComment?.likes || 0;
+        const currentDislikes = currentComment?.dislikes || 0;
+        const newLikes = result.newLikes;
+        const newDislikes = result.newDislikes;
+        
+        let newVoteType: VoteType = null;
+        if (newLikes > currentLikes) {
+          newVoteType = 'like';
+        } else if (newDislikes > currentDislikes) {
+          newVoteType = 'dislike';
+        } else if (newLikes < currentLikes || newDislikes < currentDislikes) {
+          newVoteType = null; // 투표 취소
+        }
+        
         setCommentVotes(prev => {
           const newMap = new Map(prev);
           newMap.set(commentId, newVoteType);
