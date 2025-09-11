@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCommentsByPostId, createComment, deleteComment, likeComment, dislikeComment, formatTimeAgo, CommentWithAuthor } from '@/lib/comments';
+import { getCommentsByPostId, createComment, deleteComment, voteComment, formatTimeAgo, CommentWithAuthor } from '@/lib/comments';
+import { getUserVoteState, setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
 import { getCurrentUser } from '@/lib/auth';
 
 interface CommentsSectionProps {
@@ -15,8 +16,8 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
-  const [likingComments, setLikingComments] = useState<Set<number>>(new Set());
-  const [dislikingComments, setDislikingComments] = useState<Set<number>>(new Set());
+  const [votingComments, setVotingComments] = useState<Set<number>>(new Set());
+  const [commentVotes, setCommentVotes] = useState<Map<number, VoteType>>(new Map());
 
   // 댓글 로드
   const loadComments = async () => {
@@ -24,6 +25,14 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
       setLoading(true);
       const commentsData = await getCommentsByPostId(postId);
       setComments(commentsData);
+      
+      // 각 댓글의 사용자 투표 상태 로드
+      const votes = new Map<number, VoteType>();
+      commentsData.forEach(comment => {
+        const voteState = getUserVoteState(postId, comment.id);
+        votes.set(comment.id, voteState);
+      });
+      setCommentVotes(votes);
     } catch (error) {
       console.error('댓글 로드 오류:', error);
     } finally {
@@ -70,59 +79,46 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
     }
   };
 
-  // 댓글 좋아요
-  const handleLikeComment = async (commentId: number) => {
-    if (likingComments.has(commentId) || dislikingComments.has(commentId)) return;
+  // 댓글 투표 처리 (좋아요/싫어요 토글)
+  const handleCommentVote = async (commentId: number, voteType: 'like' | 'dislike') => {
+    if (votingComments.has(commentId)) return;
 
     try {
-      setLikingComments(prev => new Set(prev).add(commentId));
-      const success = await likeComment(commentId);
+      setVotingComments(prev => new Set(prev).add(commentId));
       
-      if (success) {
+      // 현재 투표 상태와 같은 버튼을 누르면 취소
+      const currentVote = commentVotes.get(commentId);
+      const newVoteType = currentVote === voteType ? null : voteType;
+      
+      const result = await voteComment(commentId, newVoteType);
+      
+      if (result.success) {
         // 성공 시 로컬 상태 업데이트
         setComments(prev => prev.map(comment => 
           comment.id === commentId 
-            ? { ...comment, likes: comment.likes + 1 }
+            ? { 
+                ...comment, 
+                likes: result.newLikes,
+                dislikes: result.newDislikes
+              }
             : comment
         ));
+        
+        // 사용자 투표 상태 업데이트
+        setCommentVotes(prev => {
+          const newMap = new Map(prev);
+          newMap.set(commentId, newVoteType);
+          return newMap;
+        });
+        setUserVoteState(postId, newVoteType, commentId);
       } else {
-        alert('댓글 좋아요 처리에 실패했습니다.');
+        alert('댓글 투표 처리에 실패했습니다.');
       }
     } catch (error) {
-      console.error('댓글 좋아요 오류:', error);
-      alert('댓글 좋아요 처리 중 오류가 발생했습니다.');
+      console.error('댓글 투표 오류:', error);
+      alert('댓글 투표 처리 중 오류가 발생했습니다.');
     } finally {
-      setLikingComments(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(commentId);
-        return newSet;
-      });
-    }
-  };
-
-  // 댓글 싫어요
-  const handleDislikeComment = async (commentId: number) => {
-    if (likingComments.has(commentId) || dislikingComments.has(commentId)) return;
-
-    try {
-      setDislikingComments(prev => new Set(prev).add(commentId));
-      const success = await dislikeComment(commentId);
-      
-      if (success) {
-        // 성공 시 로컬 상태 업데이트
-        setComments(prev => prev.map(comment => 
-          comment.id === commentId 
-            ? { ...comment, dislikes: comment.dislikes + 1 }
-            : comment
-        ));
-      } else {
-        alert('댓글 싫어요 처리에 실패했습니다.');
-      }
-    } catch (error) {
-      console.error('댓글 싫어요 오류:', error);
-      alert('댓글 싫어요 처리 중 오류가 발생했습니다.');
-    } finally {
-      setDislikingComments(prev => {
+      setVotingComments(prev => {
         const newSet = new Set(prev);
         newSet.delete(commentId);
         return newSet;
@@ -234,32 +230,24 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
                 
                 <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
                   <button 
-                    onClick={() => handleLikeComment(comment.id)}
-                    disabled={likingComments.has(comment.id) || dislikingComments.has(comment.id)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
-                      likingComments.has(comment.id)
-                        ? 'bg-blue-200 text-blue-700 cursor-not-allowed'
-                        : 'hover:text-blue-600 hover:bg-blue-50'
-                    }`}
+                    onClick={() => handleCommentVote(comment.id, 'like')}
+                    disabled={votingComments.has(comment.id)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${getVoteButtonStyle(commentVotes.get(comment.id) || null, 'like', votingComments.has(comment.id))}`}
                   >
                     <span>👍</span>
                     <span>
-                      {likingComments.has(comment.id) ? '처리 중...' : comment.likes}
+                      {votingComments.has(comment.id) ? '처리 중...' : comment.likes}
                     </span>
                   </button>
                   
                   <button 
-                    onClick={() => handleDislikeComment(comment.id)}
-                    disabled={likingComments.has(comment.id) || dislikingComments.has(comment.id)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
-                      dislikingComments.has(comment.id)
-                        ? 'bg-red-200 text-red-700 cursor-not-allowed'
-                        : 'hover:text-red-600 hover:bg-red-50'
-                    }`}
+                    onClick={() => handleCommentVote(comment.id, 'dislike')}
+                    disabled={votingComments.has(comment.id)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${getVoteButtonStyle(commentVotes.get(comment.id) || null, 'dislike', votingComments.has(comment.id))}`}
                   >
                     <span>👎</span>
                     <span>
-                      {dislikingComments.has(comment.id) ? '처리 중...' : comment.dislikes}
+                      {votingComments.has(comment.id) ? '처리 중...' : comment.dislikes}
                     </span>
                   </button>
                 </div>

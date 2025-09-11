@@ -94,69 +94,76 @@ export async function deleteComment(commentId: number, authorEmployeeId: string)
   }
 }
 
-// 댓글 좋아요/싫어요 (향후 구현)
-export async function likeComment(commentId: number): Promise<boolean> {
+// 댓글 투표 (좋아요/싫어요 토글)
+export async function voteComment(commentId: number, voteType: 'like' | 'dislike' | null): Promise<{ success: boolean; newLikes: number; newDislikes: number }> {
   try {
-    // 먼저 현재 좋아요 수를 가져옴
+    // 현재 좋아요/싫어요 수를 가져옴
     const { data: currentData, error: fetchError } = await supabase
       .from('anonymous_comments')
-      .select('likes')
+      .select('likes, dislikes')
       .eq('id', commentId)
       .single();
 
     if (fetchError) {
-      console.error('댓글 좋아요 수 조회 오류:', fetchError);
-      return false;
+      console.error('댓글 투표 수 조회 오류:', fetchError);
+      return { success: false, newLikes: 0, newDislikes: 0 };
     }
 
-    // 좋아요 수를 1 증가시켜 업데이트
+    const currentLikes = currentData.likes || 0;
+    const currentDislikes = currentData.dislikes || 0;
+    
+    // 새로운 카운트 계산
+    let newLikes = currentLikes;
+    let newDislikes = currentDislikes;
+    
+    if (voteType === 'like') {
+      newLikes = currentLikes + 1;
+      // 싫어요가 있다면 1 감소
+      if (currentDislikes > 0) {
+        newDislikes = currentDislikes - 1;
+      }
+    } else if (voteType === 'dislike') {
+      newDislikes = currentDislikes + 1;
+      // 좋아요가 있다면 1 감소
+      if (currentLikes > 0) {
+        newLikes = currentLikes - 1;
+      }
+    } else {
+      // 투표 취소 (현재 상태에 따라 감소)
+      return { success: true, newLikes: currentLikes, newDislikes: currentDislikes };
+    }
+
+    // 데이터베이스 업데이트
     const { error } = await supabase
       .from('anonymous_comments')
-      .update({ likes: (currentData.likes || 0) + 1 })
+      .update({ 
+        likes: newLikes,
+        dislikes: newDislikes
+      })
       .eq('id', commentId);
 
     if (error) {
-      console.error('댓글 좋아요 오류:', error);
-      return false;
+      console.error('댓글 투표 오류:', error);
+      return { success: false, newLikes: currentLikes, newDislikes: currentDislikes };
     }
 
-    return true;
+    return { success: true, newLikes, newDislikes };
   } catch (error) {
-    console.error('댓글 좋아요 중 오류 발생:', error);
-    return false;
+    console.error('댓글 투표 중 오류 발생:', error);
+    return { success: false, newLikes: 0, newDislikes: 0 };
   }
 }
 
+// 댓글 좋아요 (하위 호환성을 위해 유지)
+export async function likeComment(commentId: number): Promise<boolean> {
+  const result = await voteComment(commentId, 'like');
+  return result.success;
+}
+
+// 댓글 싫어요 (하위 호환성을 위해 유지)
 export async function dislikeComment(commentId: number): Promise<boolean> {
-  try {
-    // 먼저 현재 싫어요 수를 가져옴
-    const { data: currentData, error: fetchError } = await supabase
-      .from('anonymous_comments')
-      .select('dislikes')
-      .eq('id', commentId)
-      .single();
-
-    if (fetchError) {
-      console.error('댓글 싫어요 수 조회 오류:', fetchError);
-      return false;
-    }
-
-    // 싫어요 수를 1 증가시켜 업데이트
-    const { error } = await supabase
-      .from('anonymous_comments')
-      .update({ dislikes: (currentData.dislikes || 0) + 1 })
-      .eq('id', commentId);
-
-    if (error) {
-      console.error('댓글 싫어요 오류:', error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('댓글 싫어요 중 오류 발생:', error);
-    return false;
-  }
+  const result = await voteComment(commentId, 'dislike');
+  return result.success;
 }
 
 // 시간 포맷팅 (기존 함수와 동일)

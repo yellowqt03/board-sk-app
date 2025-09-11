@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
-import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, likePost, dislikePost, type AnonymousPost } from '@/lib/anonymous-posts';
+import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, votePost, type AnonymousPost } from '@/lib/anonymous-posts';
+import { getUserVoteState, setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
 import { getCurrentUser } from '@/lib/auth';
 import CommentsSection from '@/components/CommentsSection';
 
@@ -16,8 +17,8 @@ export default function PostDetailPage() {
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [liking, setLiking] = useState(false);
-  const [disliking, setDisliking] = useState(false);
+  const [voting, setVoting] = useState(false);
+  const [userVote, setUserVote] = useState<VoteType>(null);
   const currentUser = getCurrentUser();
 
   const postId = params.id as string;
@@ -31,6 +32,9 @@ export default function PostDetailPage() {
         const data = await getAnonymousPostById(parseInt(postId));
         if (data) {
           setPost(data);
+          // 사용자 투표 상태 로드
+          const voteState = getUserVoteState(data.id);
+          setUserVote(voteState);
         } else {
           setError('게시글을 찾을 수 없습니다.');
         }
@@ -70,47 +74,37 @@ export default function PostDetailPage() {
     }
   };
 
-  // 좋아요 처리
-  const handleLike = async () => {
-    if (!post || liking || disliking) return;
+  // 투표 처리 (좋아요/싫어요 토글)
+  const handleVote = async (voteType: 'like' | 'dislike') => {
+    if (!post || voting) return;
 
     try {
-      setLiking(true);
-      const success = await likePost(post.id);
+      setVoting(true);
       
-      if (success) {
+      // 현재 투표 상태와 같은 버튼을 누르면 취소
+      const newVoteType = userVote === voteType ? null : voteType;
+      
+      const result = await votePost(post.id, newVoteType);
+      
+      if (result.success) {
         // 성공 시 로컬 상태 업데이트
-        setPost(prev => prev ? { ...prev, likes: prev.likes + 1 } : null);
+        setPost(prev => prev ? { 
+          ...prev, 
+          likes: result.newLikes,
+          dislikes: result.newDislikes
+        } : null);
+        
+        // 사용자 투표 상태 업데이트
+        setUserVote(newVoteType);
+        setUserVoteState(post.id, newVoteType);
       } else {
-        alert('좋아요 처리에 실패했습니다.');
+        alert('투표 처리에 실패했습니다.');
       }
     } catch (err) {
-      console.error('좋아요 처리 실패:', err);
-      alert('좋아요 처리 중 오류가 발생했습니다.');
+      console.error('투표 처리 실패:', err);
+      alert('투표 처리 중 오류가 발생했습니다.');
     } finally {
-      setLiking(false);
-    }
-  };
-
-  // 싫어요 처리
-  const handleDislike = async () => {
-    if (!post || liking || disliking) return;
-
-    try {
-      setDisliking(true);
-      const success = await dislikePost(post.id);
-      
-      if (success) {
-        // 성공 시 로컬 상태 업데이트
-        setPost(prev => prev ? { ...prev, dislikes: prev.dislikes + 1 } : null);
-      } else {
-        alert('싫어요 처리에 실패했습니다.');
-      }
-    } catch (err) {
-      console.error('싫어요 처리 실패:', err);
-      alert('싫어요 처리 중 오류가 발생했습니다.');
-    } finally {
-      setDisliking(false);
+      setVoting(false);
     }
   };
 
@@ -211,31 +205,23 @@ export default function PostDetailPage() {
             <div className="px-6 py-4 bg-gray-50 border-t">
               <div className="flex items-center justify-center space-x-8">
                 <button 
-                  onClick={handleLike}
-                  disabled={liking || disliking}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    liking 
-                      ? 'bg-blue-200 text-blue-700 cursor-not-allowed' 
-                      : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                  }`}
+                  onClick={() => handleVote('like')}
+                  disabled={voting}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${getVoteButtonStyle(userVote, 'like', voting)}`}
                 >
                   <span>👍</span>
                   <span>
-                    {liking ? '처리 중...' : `좋아요 (${post.likes})`}
+                    {voting ? '처리 중...' : `좋아요 (${post.likes})`}
                   </span>
                 </button>
                 <button 
-                  onClick={handleDislike}
-                  disabled={liking || disliking}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                    disliking 
-                      ? 'bg-red-200 text-red-700 cursor-not-allowed' 
-                      : 'bg-red-50 text-red-600 hover:bg-red-100'
-                  }`}
+                  onClick={() => handleVote('dislike')}
+                  disabled={voting}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${getVoteButtonStyle(userVote, 'dislike', voting)}`}
                 >
                   <span>👎</span>
                   <span>
-                    {disliking ? '처리 중...' : `싫어요 (${post.dislikes})`}
+                    {voting ? '처리 중...' : `싫어요 (${post.dislikes})`}
                   </span>
                 </button>
                 <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
