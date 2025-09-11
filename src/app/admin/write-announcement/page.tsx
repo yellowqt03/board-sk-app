@@ -9,15 +9,8 @@ import { createAnnouncement } from '@/lib/announcements';
 import { createAnnouncementNotification, getTargetUserIds } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 
-interface BoardCategory {
-  id: number;
-  name: string;
-  type: string;
-}
-
 export default function WriteAnnouncementPage() {
   const router = useRouter();
-  const [categories, setCategories] = useState<BoardCategory[]>([]);
   const [departments, setDepartments] = useState<{id: number, name: string}[]>([]);
   const [positions, setPositions] = useState<{id: number, name: string}[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +22,6 @@ export default function WriteAnnouncementPage() {
     title: '',
     content: '',
     priority: 'normal' as 'urgent' | 'normal',
-    category_id: 0,
     target_type: 'all' as 'all' | 'departments' | 'positions',
     target_departments: [] as number[],
     target_positions: [] as number[]
@@ -45,15 +37,7 @@ export default function WriteAnnouncementPage() {
         const user = await getCurrentUser();
         setCurrentUser(user);
 
-        // 공지사항 카테고리 로드
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from('board_categories')
-          .select('*')
-          .eq('is_active', true)
-          .order('name');
-
-        if (categoriesError) throw categoriesError;
-        setCategories(categoriesData || []);
+        // 카테고리는 공지사항에서 제거
 
         // 부서 목록 로드
         const { data: departmentsData, error: departmentsError } = await supabase
@@ -121,10 +105,7 @@ export default function WriteAnnouncementPage() {
       return;
     }
 
-    if (!formData.category_id) {
-      setError('카테고리를 선택해주세요.');
-      return;
-    }
+    // 카테고리 검증 제거
 
     if (!currentUser) {
       setError('로그인이 필요합니다.');
@@ -154,7 +135,7 @@ export default function WriteAnnouncementPage() {
         title: formData.title.trim(),
         content: formData.content.trim(),
         priority: formData.priority,
-        category_id: formData.category_id,
+        category_id: null, // 카테고리 제거
         author_id: currentUser.id,
         target_departments: formData.target_departments,
         target_positions: formData.target_positions
@@ -259,26 +240,7 @@ export default function WriteAnnouncementPage() {
                 </div>
               </div>
 
-              {/* 카테고리 */}
-              <div>
-                <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-2">
-                  카테고리 *
-                </label>
-                <select
-                  id="category_id"
-                  name="category_id"
-                  value={formData.category_id}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value={0}>카테고리를 선택하세요</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* 카테고리 섹션 제거 */}
 
               {/* 대상 설정 */}
               <div>
@@ -311,7 +273,7 @@ export default function WriteAnnouncementPage() {
                   </label>
                   
                   {formData.target_type === 'departments' && (
-                    <div className="ml-6 grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                    <div className="ml-6 grid grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
                       {departments.map(dept => (
                         <label key={dept.id} className="flex items-center text-sm">
                           <input

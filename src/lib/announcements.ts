@@ -77,7 +77,7 @@ export async function createAnnouncement(data: {
   title: string;
   content: string;
   priority: 'urgent' | 'normal';
-  category_id: number;
+  category_id: number | null;
   author_id: number;
   target_departments?: number[];
   target_positions?: number[];
