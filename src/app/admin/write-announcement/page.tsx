@@ -156,8 +156,8 @@ export default function WriteAnnouncementPage() {
         );
       }
 
-      // 작성 완료 후 공지사항 상세 페이지로 이동
-      router.push(`/announcement/${result.id}`);
+      // 작성 완료 후 메인 페이지(공지사항 목록)로 이동
+      router.push('/');
     } catch (err) {
       console.error('공지사항 작성 실패:', err);
       setError('공지사항 작성 중 오류가 발생했습니다.');
@@ -345,7 +345,7 @@ export default function WriteAnnouncementPage() {
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => router.back()}
+                  onClick={() => router.push('/')}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   취소
