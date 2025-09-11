@@ -49,7 +49,7 @@ export default function WriteAnnouncementPage() {
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('board_categories')
           .select('*')
-          .eq('type', 'official')
+          .eq('is_active', true)
           .order('name');
 
         if (categoriesError) throw categoriesError;
