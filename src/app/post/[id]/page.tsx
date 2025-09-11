@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, type AnonymousPost } from '@/lib/anonymous-posts';
 import { getCurrentUser } from '@/lib/auth';
+import CommentsSection from '@/components/CommentsSection';
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -193,12 +194,9 @@ export default function PostDetailPage() {
               </div>
             </div>
 
-            {/* 댓글 섹션 (향후 구현) */}
+            {/* 댓글 섹션 */}
             <div className="px-6 py-4 border-t">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">💬 댓글</h3>
-              <div className="text-center py-8 text-gray-500">
-                <p>댓글 기능은 곧 추가될 예정입니다.</p>
-              </div>
+              <CommentsSection postId={post.id} />
             </div>
 
             {/* 게시글 푸터 */}
