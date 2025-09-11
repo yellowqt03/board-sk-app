@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentUser, logout } from '@/lib/auth';
+import NotificationBell from './NotificationBell';
 
 interface NavigationBarProps {
   showUserInfo?: boolean; // 메인 페이지에서만 true
@@ -78,7 +79,7 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
             </button>
           </div>
 
-          {/* 오른쪽: 사용자 정보 및 로그아웃 */}
+          {/* 오른쪽: 사용자 정보, 알림, 로그아웃 */}
           <div className="flex items-center space-x-4">
             {showUserInfo && user && (
               <div className="flex items-center space-x-3">
@@ -93,6 +94,9 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
                 </div>
               </div>
             )}
+            
+            {/* 알림 벨 */}
+            <NotificationBell />
             
             <button
               onClick={handleLogout}

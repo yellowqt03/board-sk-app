@@ -72,6 +72,47 @@ export async function getAnnouncementById(id: number): Promise<Announcement | nu
   }
 }
 
+// 공지사항 작성
+export async function createAnnouncement(data: {
+  title: string;
+  content: string;
+  priority: 'urgent' | 'normal';
+  category_id: number;
+  author_id: number;
+  target_departments?: number[];
+  target_positions?: number[];
+}): Promise<Announcement | null> {
+  try {
+    const { data: result, error } = await supabase
+      .from('announcements')
+      .insert({
+        title: data.title.trim(),
+        content: data.content.trim(),
+        priority: data.priority,
+        category_id: data.category_id,
+        author_id: data.author_id,
+        target_departments: data.target_departments || [],
+        target_positions: data.target_positions || []
+      })
+      .select(`
+        *,
+        author:employee_master(name, employee_id),
+        category:board_categories(name)
+      `)
+      .single();
+
+    if (error) {
+      console.error('공지사항 작성 오류:', error);
+      throw error;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('공지사항 작성 실패:', error);
+    return null;
+  }
+}
+
 // 시간 포맷팅 함수
 export function formatTimeAgo(dateString: string): string {
   const now = new Date();

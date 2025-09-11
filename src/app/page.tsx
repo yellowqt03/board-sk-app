@@ -73,7 +73,15 @@ export default function Home() {
         {/* 공식 게시판 */}
         <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">📢 공지사항</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">📢 공지사항</h2>
+                <Link
+                  href="/admin/write-announcement"
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                >
+                  공지 작성
+                </Link>
+              </div>
               
               {/* 공지사항 목록 */}
               <div className="space-y-4">
