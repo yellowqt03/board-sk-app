@@ -196,7 +196,10 @@ export default function AnonymousBoardPage() {
                         >
                           {/* 웹 버전: 한 줄 레이아웃 */}
                           <div className="hidden md:flex items-center justify-between">
-                            <div className="flex items-center space-x-4 flex-1">
+                            <h3 className="text-sm font-medium text-gray-900 flex-1">
+                              {post.title}
+                            </h3>
+                            <div className="flex items-center space-x-4">
                               <span className={`text-xs px-2 py-1 rounded-full ${style.bgColor} ${style.textColor} whitespace-nowrap`}>
                                 {style.icon} {post.category?.name}
                               </span>
@@ -208,9 +211,6 @@ export default function AnonymousBoardPage() {
                                 <span>👎 {post.dislikes}</span>
                               </div>
                             </div>
-                            <h3 className="text-sm font-medium text-gray-900 text-right flex-1">
-                              {post.title}
-                            </h3>
                           </div>
 
                           {/* 모바일 버전: 두 줄 레이아웃 */}

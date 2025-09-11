@@ -70,7 +70,12 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
                 뒤로 가기
               </button>
             )}
-            <h1 className="text-xl font-bold text-gray-900">💬 SK 톡톡</h1>
+            <button
+              onClick={() => router.push('/')}
+              className="text-xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+            >
+              💬 SK 톡톡
+            </button>
           </div>
 
           {/* 오른쪽: 사용자 정보 및 로그아웃 */}
