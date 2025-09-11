@@ -73,7 +73,7 @@ export default function AnonymousBoardPage() {
         <NavigationBar showUserInfo={false} />
 
         {/* 메인 컨텐츠 */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
             {/* 익명 게시판 카테고리 */}
             <div className="bg-white rounded-lg shadow p-6">
@@ -196,13 +196,15 @@ export default function AnonymousBoardPage() {
                         >
                           {/* 웹 버전: 한 줄 레이아웃 */}
                           <div className="hidden md:flex items-center justify-between">
-                            <h3 className="text-sm font-medium text-gray-900 flex-1">
-                              {post.title}
-                            </h3>
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-3 flex-1">
                               <span className={`text-xs px-2 py-1 rounded-full ${style.bgColor} ${style.textColor} whitespace-nowrap`}>
                                 {style.icon} {post.category?.name}
                               </span>
+                              <h3 className="text-sm font-medium text-gray-900 flex-1">
+                                {post.title}
+                              </h3>
+                            </div>
+                            <div className="flex items-center space-x-4">
                               <span className="text-xs text-gray-500 whitespace-nowrap">
                                 {formatTimeAgo(post.created_at)}
                               </span>
