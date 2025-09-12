@@ -1,6 +1,5 @@
 import { supabase } from './supabase';
-import { Announcement } from './announcements';
-import { AnonymousPost } from './anonymous-posts';
+import { validateSearchQuery } from './validation';
 
 // 검색 결과 타입 정의
 export interface SearchResult {
@@ -34,6 +33,15 @@ export interface SearchOptions {
 
 // 공지사항 검색
 export async function searchAnnouncements(options: SearchOptions): Promise<SearchResult[]> {
+  // 검색어 유효성 검사
+  if (options.query) {
+    const validation = validateSearchQuery(options.query);
+    if (!validation.isValid) {
+      throw new Error(validation.error || '유효하지 않은 검색어입니다.');
+    }
+    options.query = validation.sanitizedValue || options.query;
+  }
+
   try {
     let query = supabase
       .from('announcements')
@@ -145,6 +153,15 @@ export async function searchAnnouncements(options: SearchOptions): Promise<Searc
 
 // 익명 게시글 검색
 export async function searchPosts(options: SearchOptions): Promise<SearchResult[]> {
+  // 검색어 유효성 검사
+  if (options.query) {
+    const validation = validateSearchQuery(options.query);
+    if (!validation.isValid) {
+      throw new Error(validation.error || '유효하지 않은 검색어입니다.');
+    }
+    options.query = validation.sanitizedValue || options.query;
+  }
+
   try {
     let query = supabase
       .from('anonymous_posts')
@@ -270,21 +287,70 @@ export async function searchAll(options: SearchOptions): Promise<SearchResult[]>
   }
 }
 
-// 인기 검색어 가져오기 (향후 구현)
+// 검색 로그 저장
+export async function logSearch(query: string, userId?: string): Promise<void> {
+  try {
+    await supabase
+      .from('search_logs')
+      .insert({
+        query: query,
+        user_id: userId,
+        searched_at: new Date().toISOString(),
+      });
+  } catch (error) {
+    console.error('검색 로그 저장 실패:', error);
+  }
+}
+
+// 인기 검색어 가져오기
 export async function getPopularSearchTerms(limit: number = 10): Promise<string[]> {
-  // TODO: 검색 로그를 저장하고 인기 검색어를 반환하는 기능 구현
-  return [
-    '회의',
-    '휴가',
-    '급여',
-    '복지',
-    '교육',
-    '프로젝트',
-    '보고서',
-    '회식',
-    '출장',
-    '퇴근'
-  ];
+  try {
+    // 지난 30일간의 검색 로그에서 인기 검색어 조회
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const { data, error } = await supabase
+      .from('search_logs')
+      .select('query')
+      .gte('searched_at', thirtyDaysAgo.toISOString())
+      .order('searched_at', { ascending: false });
+
+    if (error) {
+      console.error('인기 검색어 조회 오류:', error);
+      throw error;
+    }
+
+    // 검색어별 빈도 계산
+    const queryCount = new Map<string, number>();
+    data?.forEach(log => {
+      const query = log.query.toLowerCase().trim();
+      if (query.length >= 2) {
+        queryCount.set(query, (queryCount.get(query) || 0) + 1);
+      }
+    });
+
+    // 빈도순으로 정렬하여 반환
+    return Array.from(queryCount.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(entry => entry[0]);
+
+  } catch (error) {
+    console.error('인기 검색어 조회 실패:', error);
+    // 기본값 반환
+    return [
+      '회의',
+      '휴가', 
+      '급여',
+      '복지',
+      '교육',
+      '프로젝트',
+      '보고서',
+      '회식',
+      '출장',
+      '퇴근'
+    ].slice(0, limit);
+  }
 }
 
 // 검색 제안 가져오기
@@ -293,32 +359,40 @@ export async function getSearchSuggestions(query: string, limit: number = 5): Pr
     return [];
   }
 
+  // 검색어 유효성 검사
+  const validation = validateSearchQuery(query);
+  if (!validation.isValid) {
+    return [];
+  }
+
+  const sanitizedQuery = validation.sanitizedValue || query;
+
   try {
     // 공지사항 제목에서 제안 가져오기
     const { data: announcementTitles } = await supabase
       .from('announcements')
       .select('title')
-      .ilike('title', `%${query}%`)
+      .ilike('title', `%${sanitizedQuery}%`)
       .limit(limit);
 
     // 익명 게시글 제목에서 제안 가져오기
     const { data: postTitles } = await supabase
       .from('anonymous_posts')
       .select('title')
-      .ilike('title', `%${query}%`)
+      .ilike('title', `%${sanitizedQuery}%`)
       .limit(limit);
 
     // 제안 목록 생성
     const suggestions = new Set<string>();
     
     announcementTitles?.forEach(item => {
-      if (item.title.toLowerCase().includes(query.toLowerCase())) {
+      if (item.title.toLowerCase().includes(sanitizedQuery.toLowerCase())) {
         suggestions.add(item.title);
       }
     });
 
     postTitles?.forEach(item => {
-      if (item.title.toLowerCase().includes(query.toLowerCase())) {
+      if (item.title.toLowerCase().includes(sanitizedQuery.toLowerCase())) {
         suggestions.add(item.title);
       }
     });

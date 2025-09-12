@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import SearchBar from '@/components/SearchBar';
 import SearchFilters from '@/components/SearchFilters';
 import SearchResults from '@/components/SearchResults';
-import { SearchOptions, SearchResult, searchAll } from '@/lib/search';
+import { SearchOptions, SearchResult, searchAll, logSearch } from '@/lib/search';
+import { getCurrentUser } from '@/lib/auth';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -42,6 +43,15 @@ function SearchPageContent() {
 
       const searchResults = await searchAll(searchOptions);
       setResults(searchResults);
+
+      // 검색 로그 저장 (백그라운드에서)
+      try {
+        const currentUser = getCurrentUser();
+        logSearch(searchQuery, currentUser?.id);
+      } catch (logError) {
+        console.log('검색 로그 저장 실패:', logError);
+      }
+
     } catch (error) {
       console.error('검색 실패:', error);
       setResults([]);

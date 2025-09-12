@@ -1,4 +1,6 @@
 import { supabase } from './supabase';
+import { verifyPassword } from './password';
+import { generateTokens, verifyAccessToken, getUserFromToken, TokenPair } from './jwt';
 
 // 로그인 인터페이스
 export interface LoginCredentials {
@@ -21,7 +23,7 @@ export interface User {
 // 실제 Supabase 데이터베이스 사용
 
 // 로그인 함수 (Supabase 데이터베이스 사용)
-export async function login(credentials: LoginCredentials): Promise<{ user: User | null; error: string | null }> {
+export async function login(credentials: LoginCredentials): Promise<{ user: User | null; error: string | null; tokens?: TokenPair }> {
   try {
     // 1. Supabase에서 직원 정보 조회
     const { data: employee, error: employeeError } = await supabase
@@ -66,9 +68,9 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       return { user: null, error: '사용자 계정이 존재하지 않습니다.' };
     }
 
-    // 5. 비밀번호 확인 (실제로는 bcrypt 등을 사용해야 함)
-    // 현재는 간단한 검증만 수행
-    if (credentials.password !== 'test123') {
+    // 5. 비밀번호 확인 (bcrypt 사용)
+    const isValidPassword = await verifyPassword(credentials.password, userAccount.password_hash);
+    if (!isValidPassword) {
       return { user: null, error: '비밀번호가 올바르지 않습니다.' };
     }
 
@@ -85,7 +87,11 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     };
 
     console.log('로그인 성공:', user.name);
-    return { user, error: null };
+    
+    // JWT 토큰 생성
+    const tokens = generateTokens(user);
+    
+    return { user, error: null, tokens };
 
   } catch (error) {
     console.error('로그인 오류:', error);
@@ -97,32 +103,55 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
 export async function logout(): Promise<void> {
   // 클라이언트 사이드에서 세션 정리
   localStorage.removeItem('user');
-  localStorage.removeItem('token');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('tokenExpiration');
 }
 
-// 현재 사용자 정보 가져오기
+// 현재 사용자 정보 가져오기 (JWT 토큰 검증 포함)
 export function getCurrentUser(): User | null {
   if (typeof window === 'undefined') return null;
   
-  const userData = localStorage.getItem('user');
-  if (!userData) return null;
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) return null;
   
-  try {
-    return JSON.parse(userData);
-  } catch {
-    return null;
+  // JWT 토큰에서 사용자 정보 추출
+  const userFromToken = getUserFromToken(accessToken);
+  if (userFromToken) {
+    return userFromToken;
+  }
+  
+  // 토큰이 유효하지 않으면 localStorage에서 데이터 제거
+  localStorage.removeItem('user');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('tokenExpiration');
+  
+  return null;
+}
+
+// 사용자 정보 저장 (JWT 토큰과 함께)
+export function setCurrentUser(user: User, tokens?: TokenPair): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('user', JSON.stringify(user));
+  
+  if (tokens) {
+    localStorage.setItem('accessToken', tokens.accessToken);
+    localStorage.setItem('refreshToken', tokens.refreshToken);
+    localStorage.setItem('tokenExpiration', (Date.now() + tokens.expiresIn * 1000).toString());
   }
 }
 
-// 사용자 정보 저장
-export function setCurrentUser(user: User): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('user', JSON.stringify(user));
-}
-
-// 로그인 상태 확인
+// 로그인 상태 확인 (JWT 토큰 검증 포함)
 export function isLoggedIn(): boolean {
-  return getCurrentUser() !== null;
+  if (typeof window === 'undefined') return false;
+  
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) return false;
+  
+  // JWT 토큰 검증
+  const payload = verifyAccessToken(accessToken);
+  return payload !== null;
 }
 
 // 관리자 권한 확인
