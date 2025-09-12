@@ -152,12 +152,31 @@ export function getCurrentUser(): User | null {
 // 사용자 정보 저장 (JWT 토큰과 함께)
 export function setCurrentUser(user: User, tokens?: TokenPair): void {
   if (typeof window === 'undefined') return;
+  
+  console.log('setCurrentUser 호출됨:', { user, tokens: !!tokens });
+  
   localStorage.setItem('user', JSON.stringify(user));
+  console.log('사용자 정보 저장 완료');
   
   if (tokens) {
+    console.log('토큰 저장 시작:', { 
+      accessToken: tokens.accessToken.substring(0, 20) + '...',
+      refreshToken: tokens.refreshToken.substring(0, 20) + '...',
+      expiresIn: tokens.expiresIn
+    });
+    
     localStorage.setItem('accessToken', tokens.accessToken);
     localStorage.setItem('refreshToken', tokens.refreshToken);
     localStorage.setItem('tokenExpiration', (Date.now() + tokens.expiresIn * 1000).toString());
+    
+    console.log('토큰 저장 완료');
+    
+    // 저장 확인
+    const savedAccessToken = localStorage.getItem('accessToken');
+    const savedUser = localStorage.getItem('user');
+    console.log('저장 확인:', { savedAccessToken: !!savedAccessToken, savedUser: !!savedUser });
+  } else {
+    console.log('토큰이 없어서 사용자 정보만 저장');
   }
 }
 
