@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
@@ -9,7 +9,7 @@ import { createAnnouncement, getAnnouncementById, updateAnnouncement } from '@/l
 import { createAnnouncementNotification, getTargetUserIds } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 
-export default function WriteAnnouncementPage() {
+function WriteAnnouncementPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [departments, setDepartments] = useState<{id: number, name: string}[]>([]);
@@ -421,5 +421,25 @@ export default function WriteAnnouncementPage() {
         </main>
       </div>
     </AuthGuard>
+  );
+}
+
+export default function WriteAnnouncementPage() {
+  return (
+    <Suspense fallback={
+      <AuthGuard>
+        <div className="min-h-screen bg-gray-50">
+          <NavigationBar showUserInfo={true} />
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full"></div>
+              <span className="ml-3 text-gray-600">페이지를 불러오는 중...</span>
+            </div>
+          </div>
+        </div>
+      </AuthGuard>
+    }>
+      <WriteAnnouncementPageContent />
+    </Suspense>
   );
 }
