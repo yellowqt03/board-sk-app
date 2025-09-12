@@ -16,9 +16,16 @@ export default function LoginPage() {
   // 입력값 변경 핸들러
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // 사번 입력 시 숫자만 허용하고 최대 4자리까지만 입력
+    if (name === 'employeeId') {
+      processedValue = value.replace(/[^0-9]/g, '').slice(0, 4);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }));
     // 에러 메시지 초기화
     if (error) setError('');
@@ -89,7 +96,7 @@ export default function LoginPage() {
                 value={formData.employeeId}
                 onChange={handleChange}
                 className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                placeholder="사번을 입력하세요"
+                placeholder="사번 4자리를 입력하세요 (예: 2 또는 0002)"
                 disabled={isLoading}
               />
             </div>
@@ -163,9 +170,9 @@ export default function LoginPage() {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-800">로그인 도움말</h3>
               <div className="mt-1 text-sm text-blue-700">
-                <p>• 사번은 숫자로만 입력해주세요</p>
-                <p>• 비밀번호는 대소문자를 구분합니다</p>
-                <p>• 로그인에 문제가 있으면 관리자에게 문의하세요</p>
+                <p>• 사번은 숫자만 입력 (2 입력 시 자동으로 0002로 처리)</p>
+                <p>• 테스트 사번: 2, 3, 163, 202, 267</p>
+                <p>• 테스트 비밀번호: test123</p>
               </div>
             </div>
           </div>

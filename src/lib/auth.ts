@@ -25,6 +25,9 @@ export interface User {
 // 로그인 함수 (Supabase 데이터베이스 사용)
 export async function login(credentials: LoginCredentials): Promise<{ user: User | null; error: string | null; tokens?: TokenPair }> {
   try {
+    // 사번을 4자리 패딩 형식으로 변환 (예: 2 -> 0002)
+    const paddedEmployeeId = credentials.employeeId.padStart(4, '0');
+    
     // 1. Supabase에서 직원 정보 조회
     const { data: employee, error: employeeError } = await supabase
       .from('employee_master')
@@ -40,7 +43,7 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
         departments!inner(name),
         positions!inner(name, level)
       `)
-      .eq('employee_id', credentials.employeeId)
+      .eq('employee_id', paddedEmployeeId)
       .single();
 
     if (employeeError || !employee) {
@@ -61,7 +64,7 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     const { data: userAccount, error: userError } = await supabase
       .from('users')
       .select('password_hash')
-      .eq('employee_id', credentials.employeeId)
+      .eq('employee_id', paddedEmployeeId)
       .single();
 
     if (userError || !userAccount) {
