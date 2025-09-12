@@ -42,7 +42,7 @@ export function sanitizeHtml(input: string, options?: {
     REMOVE_ATTR: ['style', 'onerror', 'onload', 'onclick'],
   };
 
-  return purify.sanitize(input, config) as string;
+  return purify.sanitize(input, config) as unknown as string;
 }
 
 /**
@@ -59,7 +59,7 @@ export function sanitizeText(input: string): string {
     ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
     KEEP_CONTENT: true 
-  }) as string).trim();
+  }) as unknown as string).trim();
 }
 
 /**
@@ -263,7 +263,7 @@ export function containsSqlInjection(input: string): boolean {
   const sqlPatterns = [
     /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/gi,
     /(\b(OR|AND)\s+\d+\s*=\s*\d+)/gi,
-    /('|(\\')|(;)|(--)|(\s*(or|and)\s+.*(=|like))/gi,
+    /(\'|\\\'|;|--|(\s*(or|and)\s+.*(=|like)))/gi,
     /(\/\*.*?\*\/)/gi,
     /(\bxp_cmdshell\b)/gi,
   ];
