@@ -180,31 +180,23 @@ export function setCurrentUser(user: User, tokens?: TokenPair): void {
   }
 }
 
-// 로그인 상태 확인 (JWT 토큰 검증 포함)
+// 로그인 상태 확인 (단순화된 버전)
 export function isLoggedIn(): boolean {
   if (typeof window === 'undefined') return false;
   
-  const accessToken = localStorage.getItem('accessToken');
   const user = localStorage.getItem('user');
+  const accessToken = localStorage.getItem('accessToken');
   
-  console.log('isLoggedIn 체크:', { accessToken: !!accessToken, user: !!user });
+  console.log('isLoggedIn 체크 (단순화):', { user: !!user, accessToken: !!accessToken });
   
-  if (!accessToken) {
-    console.log('accessToken이 없음');
-    return false;
-  }
-  
-  // JWT 토큰 검증
-  const payload = verifyAccessToken(accessToken);
-  console.log('토큰 검증 결과:', payload);
-  
-  // 토큰 검증 실패 시에도 사용자 정보가 있으면 로그인된 것으로 처리
-  if (payload === null && user) {
-    console.log('토큰 검증 실패했지만 사용자 정보가 있음, 로그인된 것으로 처리');
+  // 사용자 정보가 있으면 로그인된 것으로 처리 (토큰 검증 생략)
+  if (user) {
+    console.log('사용자 정보가 있음, 로그인된 것으로 처리');
     return true;
   }
   
-  return payload !== null;
+  console.log('사용자 정보가 없음, 로그인되지 않은 것으로 처리');
+  return false;
 }
 
 // 관리자 권한 확인
