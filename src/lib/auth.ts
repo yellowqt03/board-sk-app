@@ -101,10 +101,16 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     
     // 간단한 세션 기반 인증 (JWT 대신)
     try {
+      console.log('토큰 생성 시도...');
       const tokens = generateTokens(user);
+      console.log('토큰 생성 성공:', { 
+        accessToken: tokens.accessToken.substring(0, 20) + '...',
+        refreshToken: tokens.refreshToken.substring(0, 20) + '...'
+      });
       return { user, error: null, tokens };
     } catch (tokenError) {
       console.error('토큰 생성 실패, 세션만 사용:', tokenError);
+      console.error('토큰 생성 실패 상세:', tokenError);
       // 토큰 생성 실패해도 사용자 정보는 반환
       return { user, error: null };
     }
