@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
 import SearchBar from '@/components/SearchBar';
@@ -11,6 +12,7 @@ import AnonymousWarningModal from '@/components/AnonymousWarningModal';
 import Link from 'next/link';
 
 export default function Home() {
+  const router = useRouter();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -44,7 +46,7 @@ export default function Home() {
   // 주의사항 확인 후 익명게시판으로 이동
   const handleConfirmAnonymous = () => {
     setShowWarningModal(false);
-    window.location.href = '/anonymous';
+    router.push('/anonymous');
   };
 
   return (
