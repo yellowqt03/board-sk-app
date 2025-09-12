@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
+import SearchBar from '@/components/SearchBar';
 import { getCurrentUser } from '@/lib/auth';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
 import AnonymousWarningModal from '@/components/AnonymousWarningModal';
@@ -53,6 +54,14 @@ export default function Home() {
 
       {/* 메인 컨텐츠 */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 검색 바 */}
+        <div className="mb-8">
+          <SearchBar
+            placeholder="공지사항과 게시글을 검색하세요..."
+            className="max-w-2xl mx-auto"
+          />
+        </div>
+
         {/* 탭 네비게이션 */}
         <div className="mb-8">
           <div className="border-b border-gray-200">

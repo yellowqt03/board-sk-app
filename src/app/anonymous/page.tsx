@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
+import SearchBar from '@/components/SearchBar';
 import { getAnonymousPosts, getPostCountsByCategory, getCategoryStyle, formatTimeAgo, type AnonymousPost } from '@/lib/anonymous-posts';
 import Link from 'next/link';
 
@@ -75,6 +76,13 @@ export default function AnonymousBoardPage() {
         {/* 메인 컨텐츠 */}
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
+            {/* 검색 바 */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <SearchBar
+                placeholder="익명게시판에서 검색하세요..."
+                className="max-w-2xl mx-auto"
+              />
+            </div>
             {/* 익명 게시판 카테고리 */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
