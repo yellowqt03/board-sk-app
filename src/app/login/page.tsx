@@ -39,7 +39,7 @@ export default function LoginPage() {
 
     try {
       // 실제 인증 로직 실행
-      const { user, error } = await login({
+      const { user, error, tokens } = await login({
         employeeId: formData.employeeId,
         password: formData.password
       });
@@ -50,8 +50,8 @@ export default function LoginPage() {
       }
 
       if (user) {
-        // 사용자 정보 저장
-        setCurrentUser(user);
+        // 사용자 정보와 토큰 저장
+        setCurrentUser(user, tokens);
         
         // 로그인 성공 시 메인 페이지로 이동
         router.push('/');
