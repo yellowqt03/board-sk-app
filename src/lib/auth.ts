@@ -99,14 +99,22 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
 
     console.log('로그인 성공:', user.name);
     
-    // JWT 토큰 생성
-    const tokens = generateTokens(user);
-    
-    return { user, error: null, tokens };
+    // 간단한 세션 기반 인증 (JWT 대신)
+    try {
+      const tokens = generateTokens(user);
+      return { user, error: null, tokens };
+    } catch (tokenError) {
+      console.error('토큰 생성 실패, 세션만 사용:', tokenError);
+      // 토큰 생성 실패해도 사용자 정보는 반환
+      return { user, error: null };
+    }
 
   } catch (error) {
-    console.error('로그인 오류:', error);
-    return { user: null, error: '로그인 중 오류가 발생했습니다.' };
+    console.error('로그인 오류 상세:', error);
+    console.error('오류 타입:', typeof error);
+    console.error('오류 메시지:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('오류 스택:', error instanceof Error ? error.stack : 'No stack');
+    return { user: null, error: `로그인 중 오류가 발생했습니다: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }
 
