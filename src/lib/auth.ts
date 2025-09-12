@@ -28,6 +28,8 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     // 사번을 4자리 패딩 형식으로 변환 (예: 2 -> 0002)
     const paddedEmployeeId = credentials.employeeId.padStart(4, '0');
     
+    console.log(`로그인 시도: 원본 사번 "${credentials.employeeId}" -> 패딩 사번 "${paddedEmployeeId}"`);
+    
     // 1. Supabase에서 직원 정보 조회
     const { data: employee, error: employeeError } = await supabase
       .from('employee_master')
@@ -46,8 +48,11 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       .eq('employee_id', paddedEmployeeId)
       .single();
 
+    console.log('직원 정보 조회 결과:', { employee, employeeError });
+
     if (employeeError || !employee) {
-      return { user: null, error: '존재하지 않는 사번입니다.' };
+      console.log('직원 정보 조회 실패:', employeeError);
+      return { user: null, error: `존재하지 않는 사번입니다. (사번: ${paddedEmployeeId})` };
     }
 
     // 2. 활성 사용자인지 확인
@@ -67,8 +72,11 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       .eq('employee_id', paddedEmployeeId)
       .single();
 
+    console.log('사용자 계정 조회 결과:', { userAccount, userError });
+
     if (userError || !userAccount) {
-      return { user: null, error: '사용자 계정이 존재하지 않습니다.' };
+      console.log('사용자 계정 조회 실패:', userError);
+      return { user: null, error: `사용자 계정이 존재하지 않습니다. (사번: ${paddedEmployeeId})` };
     }
 
     // 5. 비밀번호 확인 (bcrypt 사용)
