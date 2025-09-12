@@ -56,9 +56,9 @@ export function generateTokens(user: User): TokenPair {
     console.log('토큰 페이로드:', payload);
 
     try {
-      // 간단한 base64 인코딩 (실제 운영에서는 더 안전한 방법 사용)
-      const accessToken = btoa(JSON.stringify(payload));
-      const refreshToken = btoa(JSON.stringify({ userId: user.id, type: 'refresh' }));
+      // 한글 문자를 처리할 수 있는 base64 인코딩
+      const accessToken = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const refreshToken = btoa(unescape(encodeURIComponent(JSON.stringify({ userId: user.id, type: 'refresh' }))));
       const expiresIn = 7 * 24 * 60 * 60; // 7일
 
       console.log('토큰 생성 완료:', { accessToken: accessToken.substring(0, 20) + '...', refreshToken: refreshToken.substring(0, 20) + '...' });
@@ -125,7 +125,7 @@ export function verifyAccessToken(token: string): JWTPayload | null {
     // 클라이언트 사이드에서는 base64 디코딩
     if (isClientSide()) {
       try {
-        const decoded = JSON.parse(atob(token)) as JWTPayload;
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(token)))) as JWTPayload;
         return decoded;
       } catch (e) {
         console.log('Invalid base64 token');
