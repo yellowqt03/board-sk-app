@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { displayEmployeeId } from '@/lib/utils';
 
 export default function TestPage() {
   const [connectionStatus, setConnectionStatus] = useState<string>('테스트 중...');
@@ -216,7 +217,7 @@ export default function TestPage() {
                   {employees.map((emp) => (
                     <tr key={emp.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {emp.employee_id}
+                        {displayEmployeeId(emp.employee_id)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {emp.name}

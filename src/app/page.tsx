@@ -6,6 +6,7 @@ import NavigationBar from '@/components/NavigationBar';
 import SearchBar from '@/components/SearchBar';
 import { getCurrentUser } from '@/lib/auth';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
+import { displayEmployeeId } from '@/lib/utils';
 import AnonymousWarningModal from '@/components/AnonymousWarningModal';
 import Link from 'next/link';
 
@@ -123,7 +124,7 @@ export default function Home() {
                             </p>
                             {announcement.author && (
                               <p className="text-xs text-gray-500 mt-1">
-                                작성자: {announcement.author.name}
+                                작성자: {announcement.author.name} (사번: {displayEmployeeId(announcement.author.employee_id)})
                               </p>
                             )}
                           </div>

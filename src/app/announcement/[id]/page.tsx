@@ -6,6 +6,7 @@ import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
 import { getAnnouncementById, formatTimeAgo, getPriorityStyle, deleteAnnouncement, type Announcement } from '@/lib/announcements';
 import { getCurrentUser } from '@/lib/auth';
+import { displayEmployeeId } from '@/lib/utils';
 
 export default function AnnouncementDetailPage() {
   const params = useParams();
@@ -138,7 +139,7 @@ export default function AnnouncementDetailPage() {
                     <div className="flex items-center mt-2 space-x-4 text-sm">
                       {announcement.author && (
                         <span className="text-gray-600">
-                          작성자: {announcement.author.name}
+                          작성자: {announcement.author.name} (사번: {displayEmployeeId(announcement.author.employee_id)})
                         </span>
                       )}
                       <span className="text-gray-500">

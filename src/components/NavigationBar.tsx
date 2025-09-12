@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentUser, logout } from '@/lib/auth';
+import { displayEmployeeId } from '@/lib/utils';
 import NotificationBell from './NotificationBell';
 import SearchBar from './SearchBar';
 
@@ -97,7 +98,9 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-gray-700">
                   <div className="font-medium">{user.name}</div>
-                  <div className="text-gray-500">{user.department?.name}</div>
+                  <div className="text-gray-500">
+                    사번: {displayEmployeeId(user.employee_id)} | {user.department?.name}
+                  </div>
                 </div>
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                   <span className="text-purple-600 font-medium text-sm">

@@ -171,7 +171,7 @@ export default function LoginPage() {
               <h3 className="text-sm font-medium text-blue-800">로그인 도움말</h3>
               <div className="mt-1 text-sm text-blue-700">
                 <p>• 사번은 숫자만 입력 (2 입력 시 자동으로 0002로 처리)</p>
-                <p>• 테스트 사번: 2, 3, 163, 202, 267</p>
+                <p>• 테스트 사번: 0002, 0003, 0163, 0202, 0267</p>
                 <p>• 테스트 비밀번호: test123</p>
               </div>
             </div>
