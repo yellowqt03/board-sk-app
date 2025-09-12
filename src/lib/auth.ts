@@ -188,16 +188,30 @@ export function setCurrentUser(user: User, tokens?: TokenPair): void {
 
 // 로그인 상태 확인 (단순화된 버전)
 export function isLoggedIn(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {
+    console.log('isLoggedIn: 서버 사이드, false 반환');
+    return false;
+  }
   
   const user = localStorage.getItem('user');
   const accessToken = localStorage.getItem('accessToken');
   
-  console.log('isLoggedIn 체크 (단순화):', { user: !!user, accessToken: !!accessToken });
+  console.log('isLoggedIn 체크 (단순화):', { 
+    user: !!user, 
+    accessToken: !!accessToken,
+    userLength: user ? user.length : 0,
+    tokenLength: accessToken ? accessToken.length : 0
+  });
   
   // 사용자 정보가 있으면 로그인된 것으로 처리 (토큰 검증 생략)
   if (user) {
     console.log('사용자 정보가 있음, 로그인된 것으로 처리');
+    try {
+      const userObj = JSON.parse(user);
+      console.log('사용자 정보 파싱 성공:', { name: userObj.name, employee_id: userObj.employee_id });
+    } catch (e) {
+      console.error('사용자 정보 파싱 실패:', e);
+    }
     return true;
   }
   
