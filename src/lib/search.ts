@@ -1,5 +1,7 @@
 import { supabase } from './supabase';
 import { validateSearchQuery } from './validation';
+import { type Announcement } from './announcements';
+import { type AnonymousPost } from './anonymous-posts';
 
 // 검색 결과 타입 정의
 export interface SearchResult {
@@ -104,7 +106,7 @@ export async function searchAnnouncements(options: SearchOptions): Promise<Searc
     }
 
     // 검색 결과를 SearchResult 형태로 변환
-    const results: SearchResult[] = (data || []).map((item: any) => {
+    const results: SearchResult[] = (data || []).map((item: Announcement) => {
       const matchedFields: string[] = [];
       let relevanceScore = 0;
 
@@ -211,7 +213,7 @@ export async function searchPosts(options: SearchOptions): Promise<SearchResult[
     }
 
     // 검색 결과를 SearchResult 형태로 변환
-    const results: SearchResult[] = (data || []).map((item: any) => {
+    const results: SearchResult[] = (data || []).map((item: AnonymousPost) => {
       const matchedFields: string[] = [];
       let relevanceScore = 0;
 

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
 import { getAnnouncementById, formatTimeAgo, getPriorityStyle, deleteAnnouncement, type Announcement } from '@/lib/announcements';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, type User } from '@/lib/auth';
 import { displayEmployeeId } from '@/lib/utils';
 
 export default function AnnouncementDetailPage() {
@@ -14,7 +14,7 @@ export default function AnnouncementDetailPage() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const announcementId = params.id as string;
@@ -91,7 +91,7 @@ export default function AnnouncementDetailPage() {
 
     try {
       setIsDeleting(true);
-      const success = await deleteAnnouncement(announcement.id, currentUser.id);
+      const success = await deleteAnnouncement(announcement.id, parseInt(currentUser.id));
       
       if (success) {
         alert('공지사항이 삭제되었습니다.');
@@ -99,9 +99,9 @@ export default function AnnouncementDetailPage() {
       } else {
         alert('공지사항 삭제에 실패했습니다.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('삭제 오류:', error);
-      alert(error.message || '공지사항 삭제 중 오류가 발생했습니다.');
+      alert(error instanceof Error ? error.message : '공지사항 삭제 중 오류가 발생했습니다.');
     } finally {
       setIsDeleting(false);
     }
@@ -114,7 +114,7 @@ export default function AnnouncementDetailPage() {
   };
 
   // 작성자 권한 확인
-  const isAuthor = currentUser && announcement && currentUser.id === announcement.author_id;
+  const isAuthor = currentUser && announcement && parseInt(currentUser.id) === announcement.author_id;
 
   const style = getPriorityStyle(announcement.priority);
 

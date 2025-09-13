@@ -25,7 +25,7 @@ function SearchPageContent() {
       setQuery(searchQuery);
       performSearch(searchQuery, filters);
     }
-  }, [searchParams]);
+  }, [searchParams, filters]);
 
   // 검색 실행
   const performSearch = async (searchQuery: string, searchFilters: Partial<SearchOptions>) => {

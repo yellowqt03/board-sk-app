@@ -4,11 +4,30 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { displayEmployeeId } from '@/lib/utils';
 
+interface Department {
+  id: number;
+  name: string;
+  description?: string;
+  created_at?: string;
+}
+
+interface Employee {
+  id: number;
+  employee_id: string;
+  name: string;
+  email: string;
+  department: string;
+  position: string;
+  hire_date: string;
+  is_active?: boolean;
+  created_at?: string;
+}
+
 export default function TestPage() {
   const [connectionStatus, setConnectionStatus] = useState<string>('테스트 중...');
   const [tables, setTables] = useState<string[]>([]);
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   useEffect(() => {
     testConnection();
@@ -162,7 +181,7 @@ export default function TestPage() {
                   {departments.map((dept) => (
                     <tr key={dept.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {dept.id.substring(0, 8)}...
+                        {dept.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {dept.name}
@@ -171,7 +190,7 @@ export default function TestPage() {
                         {dept.description}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(dept.created_at).toLocaleDateString('ko-KR')}
+                        {dept.created_at ? new Date(dept.created_at).toLocaleDateString('ko-KR') : '-'}
                       </td>
                     </tr>
                   ))}
@@ -226,10 +245,10 @@ export default function TestPage() {
                         {emp.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {emp.departments?.name || '-'}
+                        {emp.department || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {emp.positions?.name || '-'}
+                        {emp.position || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

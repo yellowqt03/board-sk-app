@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getCommentsByPostId, createComment, deleteComment, voteComment, getUserCommentVote, formatTimeAgo, CommentWithAuthor } from '@/lib/comments';
-import { getUserVoteState, setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
-import { getCurrentUser } from '@/lib/auth';
+import { setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
+import { getCurrentUser, type User } from '@/lib/auth';
 
 interface CommentsSectionProps {
   postId: number;
@@ -14,13 +14,13 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [votingComments, setVotingComments] = useState<Set<number>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Map<number, VoteType>>(new Map());
 
   // 댓글 로드
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     try {
       setLoading(true);
       const commentsData = await getCommentsByPostId(postId);
@@ -41,7 +41,7 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId, currentUser]);
 
   // 현재 사용자 정보 로드
   const loadCurrentUser = async () => {
@@ -61,7 +61,7 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
     if (currentUser) {
       loadComments();
     }
-  }, [postId, currentUser]);
+  }, [postId, currentUser, loadComments]);
 
   // 댓글 작성
   const handleSubmitComment = async (e: React.FormEvent) => {

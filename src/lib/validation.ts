@@ -5,7 +5,9 @@ import DOMPurify from 'dompurify';
 let purify: typeof DOMPurify;
 if (typeof window === 'undefined') {
   // 서버 환경
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const createDOMPurify = require('dompurify');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { JSDOM } = require('jsdom');
   const window = new JSDOM('').window;
   purify = createDOMPurify(window as unknown as Window);
@@ -34,7 +36,7 @@ export function sanitizeHtml(input: string, options?: {
     return '';
   }
 
-  const config: any = {
+  const config = {
     ALLOWED_TAGS: options?.allowedTags || ['p', 'br', 'strong', 'em', 'u', 'b', 'i'],
     ALLOWED_ATTR: options?.allowedAttributes || [],
     REMOVE_DATA_URI: true,

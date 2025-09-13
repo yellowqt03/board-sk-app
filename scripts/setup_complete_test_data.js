@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // 완전한 테스트 데이터 설정 스크립트
 const bcrypt = require('bcryptjs');
 

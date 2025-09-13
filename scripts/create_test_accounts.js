@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // 테스트 계정 생성 스크립트
 const bcrypt = require('bcryptjs');
 

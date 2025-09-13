@@ -27,7 +27,7 @@ export default function SearchFilters({
     onFiltersChange(filters);
   }, [filters, onFiltersChange]);
 
-  const handleFilterChange = (key: keyof SearchOptions, value: any) => {
+  const handleFilterChange = (key: keyof SearchOptions, value: string | number | undefined) => {
     setFilters(prev => ({
       ...prev,
       [key]: value

@@ -7,7 +7,7 @@ export interface Notification {
   type: 'announcement' | 'keyword_alert' | 'system';
   title: string;
   content?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   is_read: boolean;
   priority: 'urgent' | 'high' | 'normal' | 'low';
   created_at: string;

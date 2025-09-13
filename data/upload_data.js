@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Supabase에 완전한 직원 데이터 업로드 스크립트
 // 사용법: node upload_data_complete.js
 

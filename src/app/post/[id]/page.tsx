@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
 import { getAnonymousPostById, formatTimeAgo, getCategoryStyle, deleteAnonymousPost, votePost, getUserPostVote, type AnonymousPost } from '@/lib/anonymous-posts';
-import { getUserVoteState, setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
+import { setUserVoteState, getVoteButtonStyle, type VoteType } from '@/lib/vote-utils';
 import { getCurrentUser } from '@/lib/auth';
 import CommentsSection from '@/components/CommentsSection';
 
@@ -53,7 +53,7 @@ export default function PostDetailPage() {
     if (postId) {
       loadPost();
     }
-  }, [postId]);
+  }, [postId, currentUser]);
 
   // 게시글 삭제 처리
   const handleDelete = async () => {

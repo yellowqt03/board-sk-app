@@ -39,7 +39,7 @@ export default function SearchResults({
           </div>
           <h3 className="text-lg font-medium text-gray-600 mb-2">검색 결과가 없습니다</h3>
           <p className="text-gray-500">
-            '{searchQuery}'에 대한 검색 결과를 찾을 수 없습니다.
+            &apos;{searchQuery}&apos;에 대한 검색 결과를 찾을 수 없습니다.
           </p>
           <div className="mt-4 text-sm text-gray-400">
             <p>• 다른 검색어를 시도해보세요</p>
@@ -59,7 +59,7 @@ export default function SearchResults({
           검색 결과
         </h2>
         <p className="text-gray-600">
-          '{searchQuery}'에 대한 검색 결과 <span className="font-medium text-blue-600">{results.length}개</span>를 찾았습니다.
+          &apos;{searchQuery}&apos;에 대한 검색 결과 <span className="font-medium text-blue-600">{results.length}개</span>를 찾았습니다.
         </p>
       </div>
 

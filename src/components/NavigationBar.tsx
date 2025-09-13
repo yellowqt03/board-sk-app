@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getCurrentUser, logout } from '@/lib/auth';
+import { getCurrentUser, logout, type User } from '@/lib/auth';
 import { displayEmployeeId } from '@/lib/utils';
 import NotificationBell from './NotificationBell';
 import SearchBar from './SearchBar';
@@ -14,7 +14,7 @@ interface NavigationBarProps {
 export default function NavigationBar({ showUserInfo = false }: NavigationBarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
                 <div className="text-sm text-gray-700">
                   <div className="font-medium">{user.name}</div>
                   <div className="text-gray-500">
-                    사번: {displayEmployeeId(user.employee_id)} | {user.department?.name}
+                    사번: {displayEmployeeId(user.employee_id)}
                   </div>
                 </div>
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">

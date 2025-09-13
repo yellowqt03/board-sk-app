@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // 로그인 디버깅 스크립트
 const bcrypt = require('bcryptjs');
 

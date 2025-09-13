@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { verifyPassword } from './password';
-import { generateTokens, verifyAccessToken, getUserFromToken, TokenPair } from './jwt';
+import { generateTokens, getUserFromToken, TokenPair } from './jwt';
 
 // 로그인 인터페이스
 export interface LoginCredentials {

@@ -19,7 +19,6 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // 알림 데이터 로드
   useEffect(() => {
@@ -28,7 +27,6 @@ export default function NotificationBell() {
         const user = await getCurrentUser();
         if (!user) return;
 
-        setCurrentUser(user);
         
         const [notificationsData, unreadCountData] = await Promise.all([
           getUserNotifications(Number(user.id)),

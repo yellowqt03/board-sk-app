@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 // Edge Runtime에서 JWT 사용을 위한 동적 import
-let jwtModule: any = null;
+let jwtModule: typeof import('./lib/jwt') | null = null;
 
 // 인증이 필요한 경로들
 const PROTECTED_ROUTES = [

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
 import SearchBar from '@/components/SearchBar';
-import { getCurrentUser } from '@/lib/auth';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
 import { displayEmployeeId } from '@/lib/utils';
 import AnonymousWarningModal from '@/components/AnonymousWarningModal';
@@ -16,7 +15,6 @@ export default function Home() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWarningModal, setShowWarningModal] = useState(false);
-  const currentUser = getCurrentUser();
 
   // 공지사항 데이터 로드
   useEffect(() => {

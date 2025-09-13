@@ -98,7 +98,7 @@ export async function deleteComment(commentId: number, authorEmployeeId: string)
 export async function voteComment(commentId: number, voteType: 'like' | 'dislike' | null, userEmployeeId: string): Promise<{ success: boolean; newLikes: number; newDislikes: number; userVote: 'like' | 'dislike' | null }> {
   try {
     // 현재 사용자의 투표 상태 확인
-    const { data: existingVote, error: voteError } = await supabase
+    const { data: existingVote } = await supabase
       .from('comment_votes')
       .select('vote_type')
       .eq('comment_id', commentId)

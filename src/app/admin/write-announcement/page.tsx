@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, type User } from '@/lib/auth';
 import { createAnnouncement, getAnnouncementById, updateAnnouncement } from '@/lib/announcements';
 import { createAnnouncementNotification, getTargetUserIds } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +17,7 @@ function WriteAnnouncementPageContent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
@@ -173,7 +173,7 @@ function WriteAnnouncementPageContent() {
           category_id: null,
           target_departments: formData.target_departments,
           target_positions: formData.target_positions
-        }, currentUser.id);
+        }, parseInt(currentUser.id));
 
         if (!result) {
           setError('공지사항 수정 중 오류가 발생했습니다.');
@@ -186,7 +186,7 @@ function WriteAnnouncementPageContent() {
           content: formData.content.trim(),
           priority: formData.priority,
           category_id: null,
-          author_id: currentUser.id,
+          author_id: parseInt(currentUser.id),
           target_departments: formData.target_departments,
           target_positions: formData.target_positions
         });

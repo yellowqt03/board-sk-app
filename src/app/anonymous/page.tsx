@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
 import SearchBar from '@/components/SearchBar';
@@ -9,7 +8,6 @@ import { getAnonymousPosts, getPostCountsByCategory, getCategoryStyle, formatTim
 import Link from 'next/link';
 
 export default function AnonymousBoardPage() {
-  const router = useRouter();
   const [anonymousPosts, setAnonymousPosts] = useState<AnonymousPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<AnonymousPost[]>([]);
   const [postCounts, setPostCounts] = useState<Record<number, number>>({});

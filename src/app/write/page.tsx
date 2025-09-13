@@ -8,16 +8,10 @@ import { getCurrentUser } from '@/lib/auth';
 import { createAnonymousPost, getCategoryStyle } from '@/lib/anonymous-posts';
 import { supabase } from '@/lib/supabase';
 
-interface BoardCategory {
-  id: number;
-  name: string;
-  type: string;
-}
 
 export default function WritePage() {
   const router = useRouter();
   const currentUser = getCurrentUser();
-  const [categories, setCategories] = useState<BoardCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,26 +36,13 @@ export default function WritePage() {
         if (error) {
           console.error('카테고리 로드 오류:', error);
           // 오류 시 기본 카테고리 설정
-          setCategories([
-            { id: 4, name: '자유게시판', type: 'anonymous' },
-            { id: 5, name: '건의사항', type: 'anonymous' },
-            { id: 6, name: '일상공유', type: 'anonymous' },
-            { id: 7, name: '불만사항', type: 'anonymous' }
-          ]);
           return;
         }
 
         console.log('로드된 카테고리:', data);
-        setCategories(data || []);
       } catch (err) {
         console.error('카테고리 로드 실패:', err);
         // 오류 시 기본 카테고리 설정
-        setCategories([
-          { id: 4, name: '자유게시판', type: 'anonymous' },
-          { id: 5, name: '건의사항', type: 'anonymous' },
-          { id: 6, name: '일상공유', type: 'anonymous' },
-          { id: 7, name: '불만사항', type: 'anonymous' }
-        ]);
       } finally {
         setLoading(false);
       }
