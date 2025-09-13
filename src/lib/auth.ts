@@ -133,26 +133,23 @@ export async function logout(): Promise<void> {
   localStorage.removeItem('tokenExpiration');
 }
 
-// 현재 사용자 정보 가져오기 (JWT 토큰 검증 포함)
+// 현재 사용자 정보 가져오기 (단순화된 버전)
 export function getCurrentUser(): User | null {
   if (typeof window === 'undefined') return null;
   
-  const accessToken = localStorage.getItem('accessToken');
-  if (!accessToken) return null;
+  // 먼저 localStorage에서 사용자 정보 확인
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return null;
   
-  // JWT 토큰에서 사용자 정보 추출
-  const userFromToken = getUserFromToken(accessToken);
-  if (userFromToken) {
-    return userFromToken;
+  try {
+    const user = JSON.parse(userStr) as User;
+    return user;
+  } catch (error) {
+    console.error('사용자 정보 파싱 오류:', error);
+    // 파싱 오류가 있는 경우에만 제거
+    localStorage.removeItem('user');
+    return null;
   }
-  
-  // 토큰이 유효하지 않으면 localStorage에서 데이터 제거
-  localStorage.removeItem('user');
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('tokenExpiration');
-  
-  return null;
 }
 
 // 사용자 정보 저장 (JWT 토큰과 함께)
@@ -189,34 +186,11 @@ export function setCurrentUser(user: User, tokens?: TokenPair): void {
 // 로그인 상태 확인 (단순화된 버전)
 export function isLoggedIn(): boolean {
   if (typeof window === 'undefined') {
-    console.log('isLoggedIn: 서버 사이드, false 반환');
     return false;
   }
   
   const user = localStorage.getItem('user');
-  const accessToken = localStorage.getItem('accessToken');
-  
-  console.log('isLoggedIn 체크 (단순화):', { 
-    user: !!user, 
-    accessToken: !!accessToken,
-    userLength: user ? user.length : 0,
-    tokenLength: accessToken ? accessToken.length : 0
-  });
-  
-  // 사용자 정보가 있으면 로그인된 것으로 처리 (토큰 검증 생략)
-  if (user) {
-    console.log('사용자 정보가 있음, 로그인된 것으로 처리');
-    try {
-      const userObj = JSON.parse(user);
-      console.log('사용자 정보 파싱 성공:', { name: userObj.name, employee_id: userObj.employee_id });
-    } catch (e) {
-      console.error('사용자 정보 파싱 실패:', e);
-    }
-    return true;
-  }
-  
-  console.log('사용자 정보가 없음, 로그인되지 않은 것으로 처리');
-  return false;
+  return !!user;
 }
 
 // 관리자 권한 확인
