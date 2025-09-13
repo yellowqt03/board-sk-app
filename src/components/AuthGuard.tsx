@@ -16,34 +16,14 @@ export default function AuthGuard({ children, requireAuth = true }: AuthGuardPro
 
   useEffect(() => {
     const checkAuth = () => {
-      console.log('AuthGuard: 인증 상태 확인 시작', { 
-        pathname: window.location.pathname,
-        requireAuth,
-        timestamp: new Date().toISOString()
-      });
-      
-      // localStorage 직접 확인
-      const user = localStorage.getItem('user');
-      const accessToken = localStorage.getItem('accessToken');
-      console.log('AuthGuard: localStorage 직접 확인:', { 
-        user: !!user, 
-        accessToken: !!accessToken,
-        userLength: user ? user.length : 0
-      });
-      
       const loggedIn = isLoggedIn();
-      console.log('AuthGuard: isLoggedIn 결과:', loggedIn);
-      console.log('AuthGuard: requireAuth:', requireAuth);
       
       setIsAuthenticated(loggedIn);
       setIsLoading(false);
 
       // 인증이 필요한 페이지인데 로그인하지 않은 경우
       if (requireAuth && !loggedIn) {
-        console.log('AuthGuard: 인증 필요하지만 로그인되지 않음, 로그인 페이지로 리다이렉션');
         router.push('/login');
-      } else {
-        console.log('AuthGuard: 인증 확인 완료, 페이지 렌더링 허용');
       }
     };
 
