@@ -93,16 +93,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    // 미들웨어를 비활성화하고 클라이언트 사이드 AuthGuard만 사용
+    // localStorage 기반 인증과 호환성을 위해 임시 비활성화
+    '/api/protected/:path*',  // API 라우트만 보호
   ],
-  // Edge Runtime 사용하지 않음 (JWT 호환성 때문에)
   runtime: 'nodejs',
 };
