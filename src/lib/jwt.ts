@@ -33,9 +33,6 @@ export interface TokenPair {
  * @returns 토큰 쌍 (액세스 토큰, 리프레시 토큰)
  */
 export function generateTokens(user: User): TokenPair {
-  console.log('generateTokens 호출됨, 사용자:', user);
-  console.log('JWT_SECRET 존재 여부:', !!JWT_SECRET);
-  console.log('클라이언트 사이드 여부:', isClientSide());
   
   if (!JWT_SECRET) {
     throw new Error('JWT secret is not configured');
@@ -43,7 +40,6 @@ export function generateTokens(user: User): TokenPair {
 
   // 클라이언트 사이드에서는 간단한 토큰 생성
   if (isClientSide()) {
-    console.log('클라이언트 사이드 토큰 생성 시작');
     const payload: JWTPayload = {
       userId: user.id,
       employeeId: user.employee_id,
@@ -53,15 +49,12 @@ export function generateTokens(user: User): TokenPair {
       positionId: user.position_id,
     };
 
-    console.log('토큰 페이로드:', payload);
-
     try {
       // 한글 문자를 처리할 수 있는 base64 인코딩
       const accessToken = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
       const refreshToken = btoa(unescape(encodeURIComponent(JSON.stringify({ userId: user.id, type: 'refresh' }))));
       const expiresIn = 7 * 24 * 60 * 60; // 7일
 
-      console.log('토큰 생성 완료:', { accessToken: accessToken.substring(0, 20) + '...', refreshToken: refreshToken.substring(0, 20) + '...' });
 
       return {
         accessToken,
@@ -69,7 +62,6 @@ export function generateTokens(user: User): TokenPair {
         expiresIn,
       };
     } catch (error) {
-      console.error('클라이언트 사이드 토큰 생성 오류:', error);
       throw error;
     }
   }

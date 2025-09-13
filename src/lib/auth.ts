@@ -28,7 +28,6 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     // 사번을 4자리 패딩 형식으로 변환 (예: 2 -> 0002)
     const paddedEmployeeId = credentials.employeeId.padStart(4, '0');
     
-    console.log(`로그인 시도: 원본 사번 "${credentials.employeeId}" -> 패딩 사번 "${paddedEmployeeId}"`);
     
     // 1. Supabase에서 직원 정보 조회
     const { data: employee, error: employeeError } = await supabase
@@ -48,10 +47,8 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       .eq('employee_id', paddedEmployeeId)
       .single();
 
-    console.log('직원 정보 조회 결과:', { employee, employeeError });
 
     if (employeeError || !employee) {
-      console.log('직원 정보 조회 실패:', employeeError);
       return { user: null, error: `존재하지 않는 사번입니다. (사번: ${paddedEmployeeId})` };
     }
 
@@ -72,10 +69,8 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       .eq('employee_id', paddedEmployeeId)
       .single();
 
-    console.log('사용자 계정 조회 결과:', { userAccount, userError });
 
     if (userError || !userAccount) {
-      console.log('사용자 계정 조회 실패:', userError);
       return { user: null, error: `사용자 계정이 존재하지 않습니다. (사번: ${paddedEmployeeId})` };
     }
 
@@ -97,16 +92,10 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       status: employee.status
     };
 
-    console.log('로그인 성공:', user.name);
     
     // 간단한 세션 기반 인증 (JWT 대신)
     try {
-      console.log('토큰 생성 시도...');
       const tokens = generateTokens(user);
-      console.log('토큰 생성 성공:', { 
-        accessToken: tokens.accessToken.substring(0, 20) + '...',
-        refreshToken: tokens.refreshToken.substring(0, 20) + '...'
-      });
       return { user, error: null, tokens };
     } catch (tokenError) {
       console.error('토큰 생성 실패, 세션만 사용:', tokenError);
@@ -156,30 +145,17 @@ export function getCurrentUser(): User | null {
 export function setCurrentUser(user: User, tokens?: TokenPair): void {
   if (typeof window === 'undefined') return;
   
-  console.log('setCurrentUser 호출됨:', { user, tokens: !!tokens });
   
   localStorage.setItem('user', JSON.stringify(user));
-  console.log('사용자 정보 저장 완료');
   
   if (tokens) {
-    console.log('토큰 저장 시작:', { 
-      accessToken: tokens.accessToken.substring(0, 20) + '...',
-      refreshToken: tokens.refreshToken.substring(0, 20) + '...',
-      expiresIn: tokens.expiresIn
-    });
     
     localStorage.setItem('accessToken', tokens.accessToken);
     localStorage.setItem('refreshToken', tokens.refreshToken);
     localStorage.setItem('tokenExpiration', (Date.now() + tokens.expiresIn * 1000).toString());
     
-    console.log('토큰 저장 완료');
     
-    // 저장 확인
-    const savedAccessToken = localStorage.getItem('accessToken');
-    const savedUser = localStorage.getItem('user');
-    console.log('저장 확인:', { savedAccessToken: !!savedAccessToken, savedUser: !!savedUser });
   } else {
-    console.log('토큰이 없어서 사용자 정보만 저장');
   }
 }
 

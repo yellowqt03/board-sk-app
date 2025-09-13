@@ -49,7 +49,15 @@ export async function getAnonymousPosts(categoryId?: number): Promise<AnonymousP
 // 익명 게시글 상세 조회
 export async function getAnonymousPostById(id: number): Promise<AnonymousPost | null> {
   try {
-    const { data, error } = await supabase
+    console.log('getAnonymousPostById 호출됨:', id);
+    console.log('ID 타입 확인:', typeof id, id);
+    
+    // timeout을 추가한 Promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('요청 시간 초과 (10초)')), 10000);
+    });
+    
+    const queryPromise = supabase
       .from('anonymous_posts')
       .select(`
         *,
@@ -57,12 +65,19 @@ export async function getAnonymousPostById(id: number): Promise<AnonymousPost | 
       `)
       .eq('id', id)
       .single();
+    
+    console.log('Supabase 쿼리 시작...');
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+
+    console.log('Supabase 응답:', { data, error });
 
     if (error) {
       console.error('익명 게시글 상세 조회 오류:', error);
+      console.error('오류 세부정보:', { message: error.message, code: error.code, details: error.details });
       return null;
     }
 
+    console.log('반환할 데이터:', data);
     return data;
   } catch (error) {
     console.error('익명 게시글 상세 조회 실패:', error);

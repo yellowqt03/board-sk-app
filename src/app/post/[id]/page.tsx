@@ -19,8 +19,6 @@ export default function PostDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [voting, setVoting] = useState(false);
   const [userVote, setUserVote] = useState<VoteType>(null);
-  const currentUser = getCurrentUser();
-
   const postId = params.id as string;
 
   useEffect(() => {
@@ -29,23 +27,29 @@ export default function PostDetailPage() {
         setLoading(true);
         setError('');
         
+        console.log('게시글 상세 페이지 로딩 시작:', postId);
         const data = await getAnonymousPostById(parseInt(postId));
+        console.log('게시글 데이터 로드 결과:', data);
+        
         if (data) {
           setPost(data);
           
           // 현재 사용자의 실제 투표 상태 로드
+          const currentUser = getCurrentUser();
           if (currentUser) {
             const userVoteState = await getUserPostVote(data.id, currentUser.employee_id);
             setUserVote(userVoteState);
             setUserVoteState(data.id, userVoteState);
           }
         } else {
+          console.log('게시글 데이터 없음, 오류 설정');
           setError('게시글을 찾을 수 없습니다.');
         }
       } catch (err) {
         console.error('게시글 로드 실패:', err);
         setError('게시글을 불러오는 중 오류가 발생했습니다.');
       } finally {
+        console.log('게시글 로딩 완료, loading false 설정');
         setLoading(false);
       }
     };
@@ -53,7 +57,7 @@ export default function PostDetailPage() {
     if (postId) {
       loadPost();
     }
-  }, [postId, currentUser]);
+  }, [postId]);
 
   // 게시글 삭제 처리
   const handleDelete = async () => {
@@ -111,6 +115,7 @@ export default function PostDetailPage() {
   };
 
   // 작성자 본인인지 확인
+  const currentUser = getCurrentUser();
   const isAuthor = post && currentUser && post.author_employee_id === currentUser.employee_id;
 
   if (loading) {
