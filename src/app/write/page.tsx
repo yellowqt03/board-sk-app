@@ -137,26 +137,26 @@ export default function WritePage() {
 
         {/* 메인 컨텐츠 */}
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-20 md:mb-6">
             {/* 헤더 */}
-            <div className="bg-purple-50 px-6 py-4 border-b border-purple-200">
-              <h1 className="text-2xl font-bold text-purple-900 flex items-center">
-                <span className="mr-3">✍️</span>
+            <div className="bg-purple-50 px-4 sm:px-6 py-4 border-b border-purple-200">
+              <h1 className="text-xl sm:text-2xl font-bold text-purple-900 flex items-center">
+                <span className="mr-2 sm:mr-3">✍️</span>
                 익명 게시글 작성
               </h1>
-              <p className="text-purple-700 mt-2">
+              <p className="text-purple-700 mt-2 text-sm sm:text-base">
                 자유롭게 의견을 나누어보세요. 익명으로 작성됩니다.
               </p>
             </div>
 
             {/* 작성 폼 */}
-            <form onSubmit={handleSubmit} className="p-6">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6">
               {/* 카테고리 선택 */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   카테고리 선택 <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-4 w-full max-w-2xl mx-auto">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-2xl mx-auto">
                   {/* 임시 하드코딩된 카테고리들 */}
                   {[
                     { id: 4, name: '자유게시판', type: 'anonymous' },
@@ -171,23 +171,35 @@ export default function WritePage() {
                         key={category.id}
                         type="button"
                         onClick={() => handleCategorySelect(category.id, category.name)}
-                        className={`p-4 border-2 rounded-lg text-left transition-all duration-200 w-full h-24 ${
+                        className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all duration-200 w-full min-h-[80px] sm:min-h-[96px] touch-manipulation ${
                           isSelected
                             ? `${style.bgColor} ${style.borderColor} border-opacity-100 ring-2 ${style.focusRing} ring-opacity-50`
-                            : `bg-white border-gray-200 hover:bg-gray-50`
+                            : `bg-white border-gray-200 hover:bg-gray-50 active:bg-gray-100`
                         }`}
                       >
                         <div className="flex items-center">
-                          <span className="text-2xl mr-3">{style.icon}</span>
-                          <div>
-                            <h3 className={`font-medium ${isSelected ? style.textColor : 'text-gray-900'}`}>
-                              {category.name}
+                          <span className="text-xl sm:text-2xl mr-2 sm:mr-3 flex-shrink-0">{style.icon}</span>
+                          <div className="min-w-0 flex-1">
+                            <h3 className={`font-medium text-sm sm:text-base ${isSelected ? style.textColor : 'text-gray-900'}`}>
+                              <span className="hidden sm:inline">{category.name}</span>
+                              <span className="sm:hidden">
+                                {category.name === '자유게시판' && '자유'}
+                                {category.name === '건의사항' && '건의'}
+                                {category.name === '일상공유' && '일상'}
+                                {category.name === '불만사항' && '불만'}
+                              </span>
                             </h3>
-                            <p className={`text-xs mt-1 ${isSelected ? style.textColor : 'text-gray-500'}`}>
+                            <p className={`text-xs mt-1 ${isSelected ? style.textColor : 'text-gray-500'} hidden sm:block`}>
                               {category.name === '자유게시판' && '자유로운 의견을 나누는 공간'}
                               {category.name === '건의사항' && '회사 개선을 위한 건의사항'}
                               {category.name === '일상공유' && '일상적인 이야기를 나누는 공간'}
                               {category.name === '불만사항' && '건설적인 불만사항을 제기하는 공간'}
+                            </p>
+                            <p className={`text-xs mt-1 ${isSelected ? style.textColor : 'text-gray-500'} sm:hidden`}>
+                              {category.name === '자유게시판' && '자유로운 의견'}
+                              {category.name === '건의사항' && '개선 건의'}
+                              {category.name === '일상공유' && '일상 이야기'}
+                              {category.name === '불만사항' && '건설적 불만'}
                             </p>
                           </div>
                         </div>
@@ -255,23 +267,17 @@ export default function WritePage() {
               )}
 
               {/* 버튼 */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <div className="text-sm text-gray-500">
+              <div className="pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-500 mb-4 sm:mb-0 sm:inline-block">
                   선택된 카테고리: <span className="font-medium text-gray-900">{selectedCategoryName}</span>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                    disabled={submitting}
-                  >
-                    취소
-                  </button>
+
+                {/* 모바일: 세로 배치 */}
+                <div className="flex flex-col sm:hidden space-y-3 mt-4">
                   <button
                     type="submit"
                     disabled={submitting || !formData.title.trim() || !formData.content.trim()}
-                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                    className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center touch-manipulation"
                   >
                     {submitting ? (
                       <>
@@ -285,6 +291,46 @@ export default function WritePage() {
                       </>
                     )}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="w-full py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation"
+                    disabled={submitting}
+                  >
+                    취소
+                  </button>
+                </div>
+
+                {/* 데스크톱: 가로 배치 */}
+                <div className="hidden sm:flex items-center justify-between">
+                  <div></div>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => router.back()}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      disabled={submitting}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting || !formData.title.trim() || !formData.content.trim()}
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          작성 중...
+                        </>
+                      ) : (
+                        <>
+                          <span className="mr-2">✍️</span>
+                          게시글 작성
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
