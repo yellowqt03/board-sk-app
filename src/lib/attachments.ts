@@ -37,6 +37,13 @@ export async function uploadAttachment(
 
     if (uploadError) {
       console.error('Storage 업로드 오류:', uploadError);
+      console.error('오류 세부정보:', uploadError);
+
+      // Bucket이 존재하지 않는 경우 사용자에게 알림
+      if (uploadError.message?.includes('Bucket not found')) {
+        console.error('Storage 버킷이 생성되지 않았습니다. ATTACHMENT_SETUP.md를 참조하여 Supabase Storage를 설정해주세요.');
+      }
+
       return null;
     }
 

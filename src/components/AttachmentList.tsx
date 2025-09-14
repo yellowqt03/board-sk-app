@@ -22,8 +22,21 @@ export default function AttachmentList({ announcementId, showTitle = true }: Att
       setLoading(true);
       const attachmentList = await getAnnouncementAttachments(announcementId);
       setAttachments(attachmentList);
+
+      // 디버깅 로그
+      console.log(`공지사항 ${announcementId}의 첨부파일 조회 결과:`, attachmentList);
+
+      if (attachmentList.length === 0) {
+        console.log('첨부파일이 없습니다. 가능한 원인:');
+        console.log('1. 실제로 첨부파일이 없음');
+        console.log('2. announcement_attachments 테이블이 생성되지 않음');
+        console.log('3. RLS 정책 문제로 조회 권한 없음');
+        console.log('해결방법: SUPABASE_SETUP_QUICK.md 참조');
+      }
+
     } catch (error) {
       console.error('첨부파일 목록 로드 실패:', error);
+      console.error('Supabase 설정을 확인해주세요. SUPABASE_SETUP_QUICK.md 참조');
     } finally {
       setLoading(false);
     }
