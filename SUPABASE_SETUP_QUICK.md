@@ -15,8 +15,16 @@
 
 ### 2. 데이터베이스 테이블 생성 (필수)
 
-**SQL Editor**에서 다음 코드 실행:
+**SQL Editor**에서 다음 코드를 **순서대로** 실행:
 
+#### 2-1. departments 테이블 수정 (description 컬럼 오류 해결)
+```sql
+-- departments 테이블에 description 컬럼 추가 (오류 해결)
+ALTER TABLE departments ADD COLUMN IF NOT EXISTS description TEXT;
+UPDATE departments SET description = name || ' 부서' WHERE description IS NULL;
+```
+
+#### 2-2. 첨부파일 테이블 생성
 ```sql
 -- 첨부파일 테이블 생성
 CREATE TABLE IF NOT EXISTS announcement_attachments (
