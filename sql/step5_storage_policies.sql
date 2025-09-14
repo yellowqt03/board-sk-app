@@ -2,6 +2,11 @@
 -- Storage RLS 정책 설정 (첨부파일 업로드 오류 해결)
 -- 4단계 완료 후 이 부분을 실행하세요
 
+-- 기존 Storage 정책들 삭제 (있다면)
+DROP POLICY IF EXISTS "Anyone can upload attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can view attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can delete attachments" ON storage.objects;
+
 -- Storage RLS 정책 생성
 -- attachments 버킷에 대한 업로드 및 조회 권한 설정
 
