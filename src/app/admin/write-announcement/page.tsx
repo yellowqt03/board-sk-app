@@ -4,9 +4,11 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
+import FileUpload, { type UploadedFile } from '@/components/FileUpload';
 import { getCurrentUser, type User } from '@/lib/auth';
 import { createAnnouncement, getAnnouncementById, updateAnnouncement } from '@/lib/announcements';
 import { createAnnouncementNotification, getTargetUserIds } from '@/lib/notifications';
+import { uploadMultipleAttachments } from '@/lib/attachments';
 import { supabase } from '@/lib/supabase';
 
 function WriteAnnouncementPageContent() {
@@ -20,6 +22,7 @@ function WriteAnnouncementPageContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [attachmentFiles, setAttachmentFiles] = useState<UploadedFile[]>([]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -194,6 +197,20 @@ function WriteAnnouncementPageContent() {
         if (!result) {
           setError('공지사항 작성 중 오류가 발생했습니다.');
           return;
+        }
+
+        // 첨부파일 업로드 (공지사항 생성 후)
+        if (attachmentFiles.length > 0) {
+          const uploadResult = await uploadMultipleAttachments(
+            attachmentFiles,
+            result.id,
+            parseInt(currentUser.id)
+          );
+
+          if (uploadResult.length !== attachmentFiles.length) {
+            console.warn('일부 첨부파일 업로드 실패');
+            // 하지만 공지사항 자체는 성공했으므로 계속 진행
+          }
         }
 
         // 알림 생성 (새 공지사항 작성 시에만)
@@ -386,6 +403,19 @@ function WriteAnnouncementPageContent() {
                   rows={10}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="공지사항 내용을 입력하세요"
+                />
+              </div>
+
+              {/* 첨부파일 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  첨부파일
+                </label>
+                <FileUpload
+                  onFilesChange={setAttachmentFiles}
+                  maxFiles={5}
+                  maxFileSize={10}
+                  disabled={submitting}
                 />
               </div>
 

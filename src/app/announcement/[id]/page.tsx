@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
+import AttachmentList from '@/components/AttachmentList';
 import { getAnnouncementById, formatTimeAgo, getPriorityStyle, deleteAnnouncement, type Announcement } from '@/lib/announcements';
 import { getCurrentUser, type User } from '@/lib/auth';
 import { displayEmployeeId } from '@/lib/utils';
@@ -159,11 +160,19 @@ export default function AnnouncementDetailPage() {
             </div>
 
             {/* 공지사항 내용 */}
-            <div className="px-6 py-8">
+            <div className="px-6 py-8 space-y-6">
               <div className="prose max-w-none">
                 <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
                   {announcement.content}
                 </div>
+              </div>
+
+              {/* 첨부파일 목록 */}
+              <div className="border-t pt-6">
+                <AttachmentList
+                  announcementId={announcement.id}
+                  showTitle={true}
+                />
               </div>
             </div>
 

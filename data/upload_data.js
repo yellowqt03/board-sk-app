@@ -25,7 +25,7 @@ async function uploadDepartments() {
   ];
 
   for (const deptName of departments) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('departments')
       .insert([{ name: deptName }]);
     
@@ -49,7 +49,7 @@ async function uploadPositions() {
   ];
 
   for (const position of positions) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('positions')
       .insert([position]);
     
@@ -105,7 +105,7 @@ async function uploadEmployees() {
           for (let i = 0; i < employeeData.length; i += batchSize) {
             const batch = employeeData.slice(i, i + batchSize);
             
-            const { data, error } = await supabase
+            const { error } = await supabase
               .from('employee_master')
               .insert(batch);
             

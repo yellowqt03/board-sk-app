@@ -147,7 +147,7 @@ async function uploadEmployees() {
     }
 
     // 김민혁 사용자 계정 생성
-    const { data: userData, error: userError } = await supabase
+    const { error: userError } = await supabase
       .from('users')
       .upsert({
         employee_id: '1475',

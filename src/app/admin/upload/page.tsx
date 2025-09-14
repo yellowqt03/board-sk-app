@@ -12,7 +12,7 @@ interface EmployeeData {
 }
 
 export default function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
+  // const [file, setFile] = useState<File | null>(null);
   const [data, setData] = useState<EmployeeData[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -22,13 +22,14 @@ export default function UploadPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setFile(file);
+    // setFile(file);
+    console.log('File selected:', file.name);
     const reader = new FileReader();
     
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
+      // const headers = lines[0].split(',').map(h => h.trim());
       
       const employeeData: EmployeeData[] = lines.slice(1)
         .filter(line => line.trim())

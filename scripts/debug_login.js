@@ -3,7 +3,7 @@
 const bcrypt = require('bcryptjs');
 
 async function debugLogin() {
-  const testEmployeeId = '0002';
+  // const testEmployeeId = '0002';
   const testPassword = 'test123';
   
   console.log('=== 로그인 디버깅 도구 ===\n');

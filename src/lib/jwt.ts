@@ -261,8 +261,9 @@ export async function invalidateToken(token: string): Promise<void> {
  * @param token - 확인할 토큰
  * @returns 블랙리스트 여부
  */
-export async function isTokenBlacklisted(_token: string): Promise<boolean> {
+export async function isTokenBlacklisted(token: string): Promise<boolean> {
   // TODO: 실제 구현에서는 블랙리스트 확인
   // 예: Redis Set에서 토큰 ID 조회
+  console.log('Checking token blacklist for:', token.slice(0, 20) + '...');
   return false;
 }

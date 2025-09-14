@@ -25,7 +25,7 @@ interface Employee {
 
 export default function TestPage() {
   const [connectionStatus, setConnectionStatus] = useState<string>('테스트 중...');
-  const [tables, setTables] = useState<string[]>([]);
+  // const [tables, setTables] = useState<string[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
 
@@ -36,7 +36,7 @@ export default function TestPage() {
   const testConnection = async () => {
     try {
       // 1. 연결 테스트
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('departments')
         .select('*')
         .limit(1);
@@ -53,7 +53,8 @@ export default function TestPage() {
         .rpc('get_table_names');
 
       if (!tableError && tableData) {
-        setTables(tableData);
+        // setTables(tableData);
+        console.log('Tables found:', tableData.length);
       }
 
       // 3. 부서 데이터 조회

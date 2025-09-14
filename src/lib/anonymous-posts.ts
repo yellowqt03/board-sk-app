@@ -68,13 +68,13 @@ export async function getAnonymousPostById(id: number): Promise<AnonymousPost | 
     
     console.log('Supabase 쿼리 시작...');
     const result = await Promise.race([queryPromise, timeoutPromise]);
-    const { data, error } = result as { data: AnonymousPost | null; error: any };
+    const { data, error } = result as { data: AnonymousPost | null; error: Error | null };
 
     console.log('Supabase 응답:', { data, error });
 
     if (error) {
       console.error('익명 게시글 상세 조회 오류:', error);
-      console.error('오류 세부정보:', { message: error.message, code: error.code, details: error.details });
+      console.error('오류 세부정보:', { message: error.message, error });
       return null;
     }
 
