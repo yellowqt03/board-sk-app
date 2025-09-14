@@ -93,7 +93,7 @@ export default function AnonymousBoardPage() {
 
         {/* 메인 컨텐츠 */}
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-6">
+          <div className="space-y-6 pb-20 md:pb-6">
             {/* 검색 바 */}
             <div className="bg-white rounded-lg shadow p-6">
               <SearchBar
@@ -120,69 +120,73 @@ export default function AnonymousBoardPage() {
                   <span className="ml-2 text-gray-600">게시판을 불러오는 중...</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {/* 자유게시판 */}
                   <button
                     onClick={() => handleCategoryClick(4)}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-all text-left ${
+                    className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all text-left touch-manipulation ${
                       selectedCategory === 4 ? 'ring-2 ring-blue-500 bg-blue-50' : ''
                     }`}
                   >
-                    <h3 className="font-medium text-gray-900 flex items-center">
-                      🗣️ 자유게시판
-                      <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    <h3 className="font-medium text-gray-900 flex items-center text-sm sm:text-base">
+                      🗣️ <span className="hidden sm:inline">자유게시판</span><span className="sm:hidden">자유</span>
+                      <span className="ml-1 sm:ml-2 bg-blue-100 text-blue-800 text-xs px-1 sm:px-2 py-1 rounded-full">
                         {postCounts[4] || 0}
                       </span>
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">자유로운 의견을 나누는 공간</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">자유로운 의견을 나누는 공간</p>
+                    <p className="text-xs text-gray-600 mt-1 sm:hidden">자유로운 의견</p>
                   </button>
                   
                   {/* 건의사항 */}
                   <button
                     onClick={() => handleCategoryClick(5)}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-all text-left ${
+                    className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all text-left touch-manipulation ${
                       selectedCategory === 5 ? 'ring-2 ring-green-500 bg-green-50' : ''
                     }`}
                   >
-                    <h3 className="font-medium text-gray-900 flex items-center">
-                      💡 건의사항
-                      <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    <h3 className="font-medium text-gray-900 flex items-center text-sm sm:text-base">
+                      💡 <span className="hidden sm:inline">건의사항</span><span className="sm:hidden">건의</span>
+                      <span className="ml-1 sm:ml-2 bg-green-100 text-green-800 text-xs px-1 sm:px-2 py-1 rounded-full">
                         {postCounts[5] || 0}
                       </span>
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">회사 개선을 위한 건의사항</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">회사 개선을 위한 건의사항</p>
+                    <p className="text-xs text-gray-600 mt-1 sm:hidden">개선 건의</p>
                   </button>
                   
                   {/* 일상공유 */}
                   <button
                     onClick={() => handleCategoryClick(6)}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-all text-left ${
+                    className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all text-left touch-manipulation ${
                       selectedCategory === 6 ? 'ring-2 ring-yellow-500 bg-yellow-50' : ''
                     }`}
                   >
-                    <h3 className="font-medium text-gray-900 flex items-center">
-                      😊 일상공유
-                      <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                    <h3 className="font-medium text-gray-900 flex items-center text-sm sm:text-base">
+                      😊 <span className="hidden sm:inline">일상공유</span><span className="sm:hidden">일상</span>
+                      <span className="ml-1 sm:ml-2 bg-yellow-100 text-yellow-800 text-xs px-1 sm:px-2 py-1 rounded-full">
                         {postCounts[6] || 0}
                       </span>
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">일상적인 이야기를 나누는 공간</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">일상적인 이야기를 나누는 공간</p>
+                    <p className="text-xs text-gray-600 mt-1 sm:hidden">일상 이야기</p>
                   </button>
                   
                   {/* 불만사항 */}
                   <button
                     onClick={() => handleCategoryClick(7)}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-all text-left ${
+                    className={`border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all text-left touch-manipulation ${
                       selectedCategory === 7 ? 'ring-2 ring-red-500 bg-red-50' : ''
                     }`}
                   >
-                    <h3 className="font-medium text-gray-900 flex items-center">
-                      😤 불만사항
-                      <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                    <h3 className="font-medium text-gray-900 flex items-center text-sm sm:text-base">
+                      😤 <span className="hidden sm:inline">불만사항</span><span className="sm:hidden">불만</span>
+                      <span className="ml-1 sm:ml-2 bg-red-100 text-red-800 text-xs px-1 sm:px-2 py-1 rounded-full">
                         {postCounts[7] || 0}
                       </span>
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">건설적인 불만사항을 제기하는 공간</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">건설적인 불만사항을 제기하는 공간</p>
+                    <p className="text-xs text-gray-600 mt-1 sm:hidden">건설적 불만</p>
                   </button>
                 </div>
               )}
