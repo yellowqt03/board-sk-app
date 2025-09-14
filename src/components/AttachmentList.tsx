@@ -31,12 +31,12 @@ export default function AttachmentList({ announcementId, showTitle = true }: Att
         console.log('1. 실제로 첨부파일이 없음');
         console.log('2. announcement_attachments 테이블이 생성되지 않음');
         console.log('3. RLS 정책 문제로 조회 권한 없음');
-        console.log('해결방법: SUPABASE_SETUP_QUICK.md 참조');
+        console.log('해결방법: sql/ 폴더의 설정 스크립트 실행 필요');
       }
 
     } catch (error) {
       console.error('첨부파일 목록 로드 실패:', error);
-      console.error('Supabase 설정을 확인해주세요. SUPABASE_SETUP_QUICK.md 참조');
+      console.error('Supabase 설정을 확인해주세요. sql/ 폴더의 설정 스크립트 실행 필요');
     } finally {
       setLoading(false);
     }

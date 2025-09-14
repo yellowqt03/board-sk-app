@@ -194,10 +194,6 @@ export default function FileUpload({
             PDF, Word, Excel, PowerPoint, 이미지 파일 (최대 {maxFileSize}MB)
             <br />
             최대 {maxFiles}개 파일 업로드 가능
-            <br />
-            <span className="text-orange-600">
-              ⚠️ Supabase Storage 설정이 필요합니다 (SUPABASE_SETUP_QUICK.md 참조)
-            </span>
           </div>
         </div>
       </div>
