@@ -9,6 +9,7 @@ export interface Comment {
   dislikes: number;
   created_at: string;
   updated_at: string;
+  parent_comment_id?: number;
   author: {
     name: string;
   };
@@ -20,7 +21,7 @@ export interface CommentWithAuthor extends Comment {
   };
 }
 
-// 댓글 조회 (특정 게시글의 댓글들)
+// 댓글 조회 (특정 게시글의 댓글들 - 계층형 구조)
 export async function getCommentsByPostId(postId: number): Promise<CommentWithAuthor[]> {
   try {
     const { data, error } = await supabase
@@ -37,18 +38,34 @@ export async function getCommentsByPostId(postId: number): Promise<CommentWithAu
       return [];
     }
 
-    return data || [];
+    // 계층형 구조로 정렬 (부모 댓글 먼저, 그 다음 해당 부모의 대댓글들)
+    const comments = data || [];
+    const result: CommentWithAuthor[] = [];
+    
+    // 먼저 부모 댓글들을 추가
+    const parentComments = comments.filter(comment => !comment.parent_comment_id);
+    
+    for (const parentComment of parentComments) {
+      result.push(parentComment);
+      
+      // 해당 부모 댓글의 대댓글들을 찾아서 추가
+      const replies = comments.filter(comment => comment.parent_comment_id === parentComment.id);
+      result.push(...replies);
+    }
+
+    return result;
   } catch (error) {
     console.error('댓글 조회 중 오류 발생:', error);
     return [];
   }
 }
 
-// 댓글 작성
+// 댓글 작성 (일반 댓글 및 대댓글)
 export async function createComment(
   postId: number,
   authorEmployeeId: string,
-  content: string
+  content: string,
+  parentCommentId?: number
 ): Promise<boolean> {
   try {
     const { error } = await supabase
@@ -57,6 +74,7 @@ export async function createComment(
         post_id: postId,
         author_employee_id: authorEmployeeId,
         content: content.trim(),
+        parent_comment_id: parentCommentId || null,
         likes: 0,
         dislikes: 0
       });

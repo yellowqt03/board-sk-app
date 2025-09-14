@@ -5,7 +5,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentUser, logout, type User } from '@/lib/auth';
 import { displayEmployeeId } from '@/lib/utils';
 import NotificationBell from './NotificationBell';
-import SearchBar from './SearchBar';
 
 interface NavigationBarProps {
   showUserInfo?: boolean; // 메인 페이지에서만 true
@@ -81,16 +80,6 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
             </button>
           </div>
 
-          {/* 중앙: 검색 바 (메인 페이지가 아닐 때만) */}
-          {pathname !== '/' && (
-            <div className="flex-1 max-w-md mx-4">
-              <SearchBar
-                placeholder="검색..."
-                className="w-full"
-                showSuggestions={false}
-              />
-            </div>
-          )}
 
           {/* 오른쪽: 사용자 정보, 알림, 로그아웃 */}
           <div className="flex items-center space-x-4">

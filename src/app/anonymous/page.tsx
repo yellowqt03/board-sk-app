@@ -10,6 +10,7 @@ import Link from 'next/link';
 export default function AnonymousBoardPage() {
   const [anonymousPosts, setAnonymousPosts] = useState<AnonymousPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<AnonymousPost[]>([]);
+  const [searchFilteredPosts, setSearchFilteredPosts] = useState<AnonymousPost[]>([]);
   const [postCounts, setPostCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -27,6 +28,7 @@ export default function AnonymousBoardPage() {
         ]);
         setAnonymousPosts(posts);
         setFilteredPosts(posts);
+        setSearchFilteredPosts(posts);
         setPostCounts(counts);
       } catch (error) {
         console.error('익명 게시판 로드 실패:', error);
@@ -44,20 +46,38 @@ export default function AnonymousBoardPage() {
       // 같은 카테고리 클릭 시 전체 보기
       setSelectedCategory(null);
       setFilteredPosts(anonymousPosts);
+      setSearchFilteredPosts(anonymousPosts);
     } else {
       // 다른 카테고리 클릭 시 필터링
       setSelectedCategory(categoryId);
       const filtered = anonymousPosts.filter(post => post.category_id === categoryId);
       setFilteredPosts(filtered);
+      setSearchFilteredPosts(filtered);
     }
     setCurrentPage(1); // 카테고리 변경 시 첫 페이지로
   };
 
+  // 익명 게시판 검색 처리
+  const handleSearch = (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setSearchFilteredPosts(filteredPosts);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = filteredPosts.filter(post => 
+      post.title.toLowerCase().includes(query) ||
+      post.content.toLowerCase().includes(query)
+    );
+    setSearchFilteredPosts(filtered);
+    setCurrentPage(1); // 검색 시 첫 페이지로
+  };
+
   // 페이지네이션 계산
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+  const totalPages = Math.ceil(searchFilteredPosts.length / postsPerPage);
   const startIndex = (currentPage - 1) * postsPerPage;
   const endIndex = startIndex + postsPerPage;
-  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+  const currentPosts = searchFilteredPosts.slice(startIndex, endIndex);
 
   // 페이지 변경
   const handlePageChange = (page: number) => {
@@ -78,6 +98,7 @@ export default function AnonymousBoardPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <SearchBar
                 placeholder="익명게시판에서 검색하세요..."
+                onSearch={handleSearch}
                 className="max-w-2xl mx-auto"
               />
             </div>
@@ -179,6 +200,7 @@ export default function AnonymousBoardPage() {
                       onClick={() => {
                         setSelectedCategory(null);
                         setFilteredPosts(anonymousPosts);
+                        setSearchFilteredPosts(anonymousPosts);
                       }}
                       className="text-sm text-gray-500 hover:text-gray-700"
                     >

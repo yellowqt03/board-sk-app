@@ -67,7 +67,8 @@ export async function getAnonymousPostById(id: number): Promise<AnonymousPost | 
       .single();
     
     console.log('Supabase 쿼리 시작...');
-    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+    const result = await Promise.race([queryPromise, timeoutPromise]);
+    const { data, error } = result as { data: AnonymousPost | null; error: any };
 
     console.log('Supabase 응답:', { data, error });
 

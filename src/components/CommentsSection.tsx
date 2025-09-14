@@ -18,6 +18,10 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [votingComments, setVotingComments] = useState<Set<number>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Map<number, VoteType>>(new Map());
+  
+  // 대댓글 관련 상태
+  const [replyToComment, setReplyToComment] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState('');
 
   // 댓글 로드
   const loadComments = useCallback(async () => {
@@ -82,6 +86,31 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
     } catch (error) {
       console.error('댓글 작성 오류:', error);
       alert('댓글 작성 중 오류가 발생했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 대댓글 작성
+  const handleSubmitReply = async (e: React.FormEvent, parentCommentId: number) => {
+    e.preventDefault();
+    
+    if (!replyContent.trim() || !currentUser) return;
+
+    try {
+      setSubmitting(true);
+      const success = await createComment(postId, currentUser.employee_id, replyContent, parentCommentId);
+      
+      if (success) {
+        setReplyContent('');
+        setReplyToComment(null);
+        await loadComments(); // 댓글 목록 새로고침
+      } else {
+        alert('대댓글 작성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('대댓글 작성 오류:', error);
+      alert('대댓글 작성 중 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -204,17 +233,20 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
         ) : (
           comments.map((comment) => {
             const isAuthor = currentUser && comment.author_employee_id === currentUser.employee_id;
+            const isReply = !!comment.parent_comment_id;
             
             return (
-              <div key={comment.id} className="bg-white p-4 rounded-lg border border-gray-200">
+              <div key={comment.id} className={`bg-white p-4 rounded-lg border border-gray-200 ${isReply ? 'ml-8 border-l-4 border-l-blue-200' : ''}`}>
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
+                    {isReply && <span className="text-blue-600">↳</span>}
                     <span className="font-medium text-gray-900">
                       {comment.author.name}
                     </span>
                     <span className="text-sm text-gray-500">
                       {formatTimeAgo(comment.created_at)}
                     </span>
+                    {isReply && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">대댓글</span>}
                   </div>
                   
                   {isAuthor && (
@@ -255,7 +287,56 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
                       {votingComments.has(comment.id) ? '처리 중...' : comment.dislikes}
                     </span>
                   </button>
+                  
+                  {/* 대댓글 버튼 (부모 댓글에만 표시) */}
+                  {!isReply && currentUser && (
+                    <button
+                      onClick={() => setReplyToComment(replyToComment === comment.id ? null : comment.id)}
+                      className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      <span>💬</span>
+                      <span>답글</span>
+                    </button>
+                  )}
                 </div>
+
+                {/* 대댓글 작성 폼 */}
+                {replyToComment === comment.id && !isReply && (
+                  <form onSubmit={(e) => handleSubmitReply(e, comment.id)} className="mt-4 pl-4 border-l-2 border-blue-200">
+                    <div className="flex gap-2">
+                      <textarea
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        placeholder="답글을 작성해주세요..."
+                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        rows={2}
+                        maxLength={500}
+                      />
+                      <div className="flex flex-col gap-1">
+                        <button
+                          type="submit"
+                          disabled={!replyContent.trim() || submitting}
+                          className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                        >
+                          {submitting ? '작성 중...' : '답글 작성'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReplyToComment(null);
+                            setReplyContent('');
+                          }}
+                          className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {replyContent.length}/500자
+                    </p>
+                  </form>
+                )}
               </div>
             );
           })

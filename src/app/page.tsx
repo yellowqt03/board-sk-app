@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import NavigationBar from '@/components/NavigationBar';
-import SearchBar from '@/components/SearchBar';
 import { getAnnouncements, formatTimeAgo, getPriorityStyle, type Announcement } from '@/lib/announcements';
+import SearchBar from '@/components/SearchBar';
 import { displayEmployeeId } from '@/lib/utils';
 import AnonymousWarningModal from '@/components/AnonymousWarningModal';
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import Link from 'next/link';
 export default function Home() {
   const router = useRouter();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [filteredAnnouncements, setFilteredAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWarningModal, setShowWarningModal] = useState(false);
 
@@ -23,6 +24,7 @@ export default function Home() {
         setLoading(true);
         const data = await getAnnouncements();
         setAnnouncements(data);
+        setFilteredAnnouncements(data);
       } catch (error) {
         console.error('공지사항 로드 실패:', error);
       } finally {
@@ -47,6 +49,22 @@ export default function Home() {
     router.push('/anonymous');
   };
 
+  // 공지사항 검색 처리
+  const handleSearch = (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setFilteredAnnouncements(announcements);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = announcements.filter(announcement => 
+      announcement.title.toLowerCase().includes(query) ||
+      announcement.content.toLowerCase().includes(query) ||
+      announcement.author?.name.toLowerCase().includes(query)
+    );
+    setFilteredAnnouncements(filtered);
+  };
+
   return (
     <AuthGuard>
     <div className="min-h-screen bg-gray-50">
@@ -55,13 +73,6 @@ export default function Home() {
 
       {/* 메인 컨텐츠 */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 검색 바 */}
-        <div className="mb-8">
-          <SearchBar
-            placeholder="공지사항과 게시글을 검색하세요..."
-            className="max-w-2xl mx-auto"
-          />
-        </div>
 
         {/* 탭 네비게이션 */}
         <div className="mb-8">
@@ -93,6 +104,15 @@ export default function Home() {
                 </Link>
               </div>
               
+              {/* 공지사항 검색바 */}
+              <div className="mb-4">
+                <SearchBar
+                  placeholder="공지사항을 검색하세요..."
+                  onSearch={handleSearch}
+                  className="max-w-md"
+                />
+              </div>
+              
               {/* 공지사항 목록 */}
               <div className="space-y-4">
                 {loading ? (
@@ -100,12 +120,12 @@ export default function Home() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <span className="ml-2 text-gray-600">공지사항을 불러오는 중...</span>
                   </div>
-                ) : announcements.length === 0 ? (
+                ) : filteredAnnouncements.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    <p>등록된 공지사항이 없습니다.</p>
+                    <p>{announcements.length === 0 ? '등록된 공지사항이 없습니다.' : '검색 결과가 없습니다.'}</p>
                   </div>
                 ) : (
-                  announcements.map((announcement) => {
+                  filteredAnnouncements.map((announcement) => {
                     const style = getPriorityStyle(announcement.priority);
                     return (
                       <Link
