@@ -1,80 +1,73 @@
-# 🏥 사내 통합 게시판
+# 🏢 사내 통합 게시판 시스템
 
-Next.js와 Supabase를 활용한 사내 통합 게시판 시스템입니다.
+이 프로젝트는 사내 게시판 시스템을 Next.js와 Supabase로 구현한 것입니다.
 
-## 🚀 시작하기
+## ✨ 주요 기능
 
-### 1. 환경 변수 설정
+- **📋 다양한 게시판**: 공지사항, 익명게시판, 자유게시판
+- **📎 첨부파일**: PNG 파일 업로드/다운로드 지원
+- **🔐 사용자 인증**: JWT 기반 로그인/로그아웃
+- **👥 권한 관리**: 일반 사용자와 관리자 구분
+- **📱 반응형 디자인**: 모바일과 데스크톱 지원
 
-프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 추가하세요:
+## 🛠 기술 스택
 
-```env
-# Supabase 설정
-NEXT_PUBLIC_SUPABASE_URL=https://mpdbzypvrstdwsutttps.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZGJ6eXB2cnN0ZHdzdXR0dHBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3ODI2MDMsImV4cCI6MjA3MjM1ODYwM30.eAuliCg-aZy38VWfxLLei1m5XOOzYpgBQm108rANOMA
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **Deployment**: Vercel
 
-# 애플리케이션 설정
-NEXT_PUBLIC_APP_NAME=사내 통합 게시판
-NEXT_PUBLIC_APP_VERSION=1.0.0
+## 🚀 빠른 시작
+
+### 1. 의존성 설치
+```bash
+npm install
 ```
 
-### 2. 데이터베이스 설정
+### 2. 환경 변수 설정
+`.env.local` 파일에 Supabase 설정이 포함되어 있습니다.
 
-Supabase 대시보드의 SQL Editor에서 `database_setup.sql` 파일의 내용을 실행하세요.
+### 3. 데이터베이스 설정
+`sql/` 폴더의 스크립트를 Supabase SQL Editor에서 순서대로 실행:
+- `step2_users_admin.sql`
+- `step3_attachments_table.sql`
+- `step4_rls_policies.sql`
+- `step5_storage_policies.sql`
 
-### 3. 개발 서버 실행
+### 4. Storage 버킷 생성
+Supabase에서 `attachments` 버킷 생성 (Public)
 
+### 5. 개발 서버 실행
 ```bash
 npm run dev
 ```
+
+## 📋 테스트 계정
+
+- **관리자**: 사번 `2`, 비밀번호 `test123`
+- **일반 사용자**: 사번 `1475`, 비밀번호 `test123`
+
+## 🔧 주요 디렉토리
+
+- `src/app/` - Next.js 페이지
+- `src/components/` - 재사용 컴포넌트
+- `src/lib/` - 유틸리티 함수
+- `sql/` - 데이터베이스 설정 스크립트
 
 ## 📊 데이터베이스 스키마
 
 - **departments**: 부서 정보
-- **positions**: 직급 정보
-- **employee_master**: 사원 마스터 데이터
-- **users**: 사용자 인증 정보
+- **users**: 사용자 인증 정보 (관리자 권한 포함)
 - **posts**: 게시글 정보
 - **comments**: 댓글 정보
-- **notifications**: 알림 정보
-- **likes**: 좋아요 정보
+- **announcements**: 공지사항 정보
+- **announcement_attachments**: 첨부파일 정보
 
-## 🛠️ 기술 스택
+## 🚀 배포
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase
-- **Database**: PostgreSQL
+GitHub `main` 브랜치에 push시 Vercel 자동 배포
 
-## 📝 개발 서버 실행
+## 📝 사용법
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. 관리자 계정으로 로그인
+2. 공지사항 작성 시 첨부파일 업로드 가능
+3. 업로드된 파일은 게시글에서 다운로드 가능
