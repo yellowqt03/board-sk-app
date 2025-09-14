@@ -22,10 +22,20 @@ export async function uploadAttachment(
   userId: number
 ): Promise<AttachmentRecord | null> {
   try {
+    console.log('📁 파일 업로드 시작:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      announcementId,
+      userId
+    });
+
     // 고유한 파일명 생성
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
     const storagePath = `announcements/${announcementId}/${fileName}`;
+
+    console.log('📂 Storage 경로:', storagePath);
 
     // Storage에 파일 업로드
     const { error: uploadError } = await supabase.storage
@@ -36,7 +46,7 @@ export async function uploadAttachment(
       });
 
     if (uploadError) {
-      console.error('Storage 업로드 오류:', uploadError);
+      console.error('❌ Storage 업로드 오류:', uploadError);
       console.error('오류 세부정보:', uploadError);
 
       // Bucket이 존재하지 않는 경우 사용자에게 알림
@@ -47,28 +57,35 @@ export async function uploadAttachment(
       return null;
     }
 
+    console.log('✅ Storage 업로드 성공');
+
     // 데이터베이스에 첨부파일 정보 저장
+    const insertData = {
+      announcement_id: announcementId,
+      file_name: fileName,
+      original_name: file.name,
+      file_size: file.size,
+      file_type: file.type,
+      storage_path: storagePath,
+      uploaded_by: userId
+    };
+
+    console.log('💾 데이터베이스 저장 시도:', insertData);
+
     const { data, error: dbError } = await supabase
       .from('announcement_attachments')
-      .insert({
-        announcement_id: announcementId,
-        file_name: fileName,
-        original_name: file.name,
-        file_size: file.size,
-        file_type: file.type,
-        storage_path: storagePath,
-        uploaded_by: userId
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (dbError) {
-      console.error('데이터베이스 저장 오류:', dbError);
+      console.error('❌ 데이터베이스 저장 오류:', dbError);
       // Storage에서 파일 삭제 (롤백)
       await supabase.storage.from('attachments').remove([storagePath]);
       return null;
     }
 
+    console.log('✅ 데이터베이스 저장 성공:', data);
     return data;
   } catch (error) {
     console.error('첨부파일 업로드 실패:', error);
