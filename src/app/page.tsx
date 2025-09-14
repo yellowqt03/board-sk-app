@@ -74,8 +74,8 @@ export default function Home() {
       {/* 메인 컨텐츠 */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* 탭 네비게이션 */}
-        <div className="mb-8">
+        {/* 탭 네비게이션 (데스크톱만 표시, 모바일은 하단 네비게이션 사용) */}
+        <div className="mb-8 hidden md:block">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               <div className="py-2 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm">
@@ -92,15 +92,16 @@ export default function Home() {
         </div>
 
         {/* 공식 게시판 */}
-        <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
+        <div className="space-y-6 pb-20 md:pb-6">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">📢 공지사항</h2>
                 <Link
                   href="/admin/write-announcement"
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                  className="bg-purple-600 text-white px-3 py-2 sm:px-4 rounded-lg text-sm hover:bg-purple-700 transition-colors"
                 >
-                  공지 작성
+                  <span className="hidden sm:inline">공지 작성</span>
+                  <span className="sm:hidden">작성</span>
                 </Link>
               </div>
               
@@ -131,26 +132,30 @@ export default function Home() {
                       <Link
                         key={announcement.id}
                         href={`/announcement/${announcement.id}`}
-                        className={`border-l-4 ${style.borderColor} ${style.bgColor} p-4 rounded cursor-pointer hover:shadow-md transition-shadow block`}
+                        className={`border-l-4 ${style.borderColor} ${style.bgColor} p-3 sm:p-4 rounded cursor-pointer hover:shadow-md transition-shadow block`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h3 className={`text-sm font-medium ${style.textColor} flex items-center`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`text-sm font-medium ${style.textColor} flex items-center mb-1`}>
                               <span className="mr-2">{style.icon}</span>
-                              {announcement.title}
+                              <span className="truncate">{announcement.title}</span>
                             </h3>
                             <p className={`text-sm ${style.textColor.replace('800', '600')} mt-1 line-clamp-2`}>
                               {announcement.content}
                             </p>
                             {announcement.author && (
-                              <p className="text-xs text-gray-500 mt-1">
-                                작성자: {announcement.author.name} (사번: {displayEmployeeId(announcement.author.employee_id)})
+                              <p className="text-xs text-gray-500 mt-2">
+                                <span className="hidden sm:inline">작성자: </span>
+                                {announcement.author.name}
+                                <span className="hidden sm:inline"> (사번: {displayEmployeeId(announcement.author.employee_id)})</span>
                               </p>
                             )}
                           </div>
-                          <span className={`text-xs ${style.textColor.replace('800', '500')} ml-4`}>
-                            {formatTimeAgo(announcement.created_at)}
-                          </span>
+                          <div className="flex flex-col items-end ml-2 flex-shrink-0">
+                            <span className={`text-xs ${style.textColor.replace('800', '500')} whitespace-nowrap`}>
+                              {formatTimeAgo(announcement.created_at)}
+                            </span>
+                          </div>
                         </div>
                       </Link>
                     );
@@ -160,22 +165,22 @@ export default function Home() {
             </div>
 
             {/* 부서별 공지 */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">🏢 부서별 공지</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <h3 className="font-medium text-gray-900">개발팀</h3>
-                  <p className="text-sm text-gray-600 mt-1">새로운 프로젝트 시작</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <div className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+                  <h3 className="font-medium text-gray-900 text-sm sm:text-base">개발팀</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">새로운 프로젝트 시작</p>
                   <span className="text-xs text-gray-400">1시간 전</span>
                 </div>
-                <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <h3 className="font-medium text-gray-900">마케팅팀</h3>
-                  <p className="text-sm text-gray-600 mt-1">홍보 자료 제작 완료</p>
+                <div className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+                  <h3 className="font-medium text-gray-900 text-sm sm:text-base">마케팅팀</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">홍보 자료 제작 완료</p>
                   <span className="text-xs text-gray-400">2시간 전</span>
                 </div>
-                <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <h3 className="font-medium text-gray-900">인사팀</h3>
-                  <p className="text-sm text-gray-600 mt-1">신입사원 오리엔테이션</p>
+                <div className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+                  <h3 className="font-medium text-gray-900 text-sm sm:text-base">인사팀</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">신입사원 오리엔테이션</p>
                   <span className="text-xs text-gray-400">3시간 전</span>
                 </div>
               </div>
@@ -185,16 +190,22 @@ export default function Home() {
       </main>
 
       {/* 하단 네비게이션 (모바일) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
         <div className="flex">
-          <div className="flex-1 py-3 px-4 text-center text-blue-600 border-t-2 border-blue-600">
-            🏢 사내게시판
+          <div className="flex-1 py-4 px-2 text-center text-blue-600 border-t-2 border-blue-600">
+            <div className="flex flex-col items-center">
+              <span className="text-lg mb-1">🏢</span>
+              <span className="text-xs font-medium">사내게시판</span>
+            </div>
           </div>
           <button
             onClick={handleAnonymousClick}
-            className="flex-1 py-3 px-4 text-center text-gray-500"
+            className="flex-1 py-4 px-2 text-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100"
           >
-            🔒 익명게시판
+            <div className="flex flex-col items-center">
+              <span className="text-lg mb-1">🔒</span>
+              <span className="text-xs font-medium">익명게시판</span>
+            </div>
           </button>
         </div>
       </div>

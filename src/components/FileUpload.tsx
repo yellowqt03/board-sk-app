@@ -164,7 +164,7 @@ export default function FileUpload({
     <div className="space-y-4">
       {/* 업로드 영역 */}
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors min-h-[120px] sm:min-h-[140px] ${
           dragActive
             ? 'border-purple-500 bg-purple-50'
             : 'border-gray-300 hover:border-gray-400'
@@ -186,14 +186,16 @@ export default function FileUpload({
         />
 
         <div className="space-y-2">
-          <div className="text-4xl">📎</div>
-          <div className="text-lg font-medium text-gray-900">
-            파일을 드래그하거나 클릭하여 업로드
+          <div className="text-3xl sm:text-4xl">📎</div>
+          <div className="text-base sm:text-lg font-medium text-gray-900">
+            <span className="hidden sm:inline">파일을 드래그하거나 클릭하여 업로드</span>
+            <span className="sm:hidden">파일 업로드</span>
           </div>
-          <div className="text-sm text-gray-500">
-            PDF, Word, Excel, PowerPoint, 이미지 파일 (최대 {maxFileSize}MB)
-            <br />
-            최대 {maxFiles}개 파일 업로드 가능
+          <div className="text-xs sm:text-sm text-gray-500">
+            PDF, Word, Excel, PowerPoint, 이미지 파일
+            <br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>
+            (최대 {maxFileSize}MB, {maxFiles}개)
           </div>
         </div>
       </div>
@@ -234,10 +236,10 @@ export default function FileUpload({
                 {!disabled && (
                   <button
                     onClick={() => removeFile(file.id)}
-                    className="text-red-500 hover:text-red-700 p-1"
+                    className="text-red-500 hover:text-red-700 p-2 sm:p-1 -mr-1 touch-manipulation"
                     title="파일 제거"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>

@@ -64,49 +64,64 @@ export default function NavigationBar({ showUserInfo = false }: NavigationBarPro
             {pathname !== '/' && (
               <button
                 onClick={() => router.back()}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mr-4"
+                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mr-2 sm:mr-4 min-w-0"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                뒤로 가기
+                <span className="hidden sm:inline">뒤로 가기</span>
               </button>
             )}
             <button
               onClick={() => router.push('/')}
-              className="text-xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+              className="text-lg sm:text-xl font-bold text-gray-900 hover:text-gray-700 transition-colors truncate"
             >
               💬 SK 톡톡
             </button>
           </div>
 
-
           {/* 오른쪽: 사용자 정보, 알림, 로그아웃 */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-4">
             {showUserInfo && user && (
-              <div className="flex items-center space-x-3">
-                <div className="text-sm text-gray-700">
-                  <div className="font-medium">{user.name}</div>
-                  <div className="text-gray-500">
-                    사번: {displayEmployeeId(user.employee_id)}
+              <>
+                {/* 데스크톱용 사용자 정보 */}
+                <div className="hidden sm:flex items-center space-x-3">
+                  <div className="text-sm text-gray-700">
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-gray-500">
+                      사번: {displayEmployeeId(user.employee_id)}
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-medium text-sm">
+                      {user.name.charAt(0)}
+                    </span>
                   </div>
                 </div>
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-medium text-sm">
-                    {user.name.charAt(0)}
-                  </span>
+
+                {/* 모바일용 간단한 사용자 정보 */}
+                <div className="sm:hidden flex items-center">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-medium text-sm">
+                      {user.name.charAt(0)}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
-            
+
             {/* 알림 벨 */}
             <NotificationBell />
-            
+
+            {/* 로그아웃 버튼 */}
             <button
               onClick={handleLogout}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-2 py-2 sm:px-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              로그아웃
+              <span className="hidden sm:inline">로그아웃</span>
+              <svg className="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
             </button>
           </div>
         </div>

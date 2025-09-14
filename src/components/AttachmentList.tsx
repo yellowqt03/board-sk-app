@@ -98,20 +98,20 @@ export default function AttachmentList({ announcementId, showTitle = true }: Att
         {attachments.map((attachment) => (
           <div
             key={attachment.id}
-            className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <span className="text-2xl flex-shrink-0">
+              <span className="text-xl sm:text-2xl flex-shrink-0">
                 {getFileTypeIcon(attachment.file_type)}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-gray-900 truncate">
                   {attachment.original_name}
                 </div>
-                <div className="flex items-center space-x-2 text-xs text-gray-500">
+                <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
                   <span>{formatFileSize(attachment.file_size)}</span>
-                  <span>•</span>
-                  <span>{new Date(attachment.uploaded_at).toLocaleDateString('ko-KR', {
+                  <span className="hidden sm:inline">•</span>
+                  <span className="hidden sm:inline">{new Date(attachment.uploaded_at).toLocaleDateString('ko-KR', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
@@ -123,20 +123,20 @@ export default function AttachmentList({ announcementId, showTitle = true }: Att
             <button
               onClick={() => handleDownload(attachment)}
               disabled={downloadingFiles.has(attachment.id)}
-              className="flex items-center space-x-2 px-3 py-2 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-1 sm:space-x-2 px-2 py-2 sm:px-3 text-sm text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
               title="다운로드"
             >
               {downloadingFiles.has(attachment.id) ? (
                 <>
                   <div className="animate-spin w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full"></div>
-                  <span>다운로드 중...</span>
+                  <span className="hidden sm:inline">다운로드 중...</span>
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span>다운로드</span>
+                  <span className="hidden sm:inline">다운로드</span>
                 </>
               )}
             </button>
