@@ -107,12 +107,17 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     debugLog.push(`4️⃣ users 테이블 계정 확인: ${paddedEmployeeId}`);
     const { data: userAccount, error: userError } = await supabase
       .from('users')
-      .select('password_hash, is_admin, is_super_admin')
+      .select('*')
       .eq('employee_id', paddedEmployeeId)
       .single();
 
     console.log('사용자 계정 조회 결과:', { userAccount, userError });
-    debugLog.push(`📊 users 조회 결과: ${userAccount ? '발견' : `실패 (${userError?.message})`}`);
+    if (userAccount) {
+      console.log('🔍 users 테이블 스키마 (실제 컬럼들):', Object.keys(userAccount));
+      debugLog.push(`📊 users 조회 결과: 발견 - 컬럼: [${Object.keys(userAccount).join(', ')}]`);
+    } else {
+      debugLog.push(`📊 users 조회 결과: 실패 (${userError?.message})`);
+    }
 
     if (userError || !userAccount) {
       console.error('로그인 실패 - 디버그 로그:', debugLog);
@@ -142,9 +147,9 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       position_id: employee.position_id?.toString() || '',
       is_active: employee.is_active,
       status: employee.status,
-      role: 'user', // 기본값으로 설정 (role 컬럼이 없으므로)
-      is_admin: userAccount.is_admin || false,
-      is_super_admin: userAccount.is_super_admin || false
+      role: 'user', // 기본값으로 설정
+      is_admin: userAccount?.is_admin || false,
+      is_super_admin: userAccount?.is_super_admin || false
     };
 
     
