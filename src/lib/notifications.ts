@@ -4,12 +4,13 @@ import { supabase } from './supabase';
 export interface Notification {
   id: number;
   user_id: number;
-  type: 'announcement' | 'keyword_alert' | 'system';
+  type: 'announcement' | 'comment' | 'keyword_alert' | 'system';
   title: string;
   content?: string;
   data?: Record<string, unknown>;
   is_read: boolean;
   priority: 'urgent' | 'high' | 'normal' | 'low';
+  related_id?: number;
   created_at: string;
   read_at?: string;
 }
@@ -261,5 +262,176 @@ export function showBrowserNotification(title: string, options?: NotificationOpt
       badge: '/favicon.ico',
       ...options
     });
+  }
+}
+
+// 실시간 댓글 알림 생성
+export async function createCommentNotification(
+  postId: number,
+  postTitle: string,
+  commentAuthorId: number
+): Promise<boolean> {
+  try {
+    // 게시글 작성자 정보 가져오기
+    const { data: post, error: postError } = await supabase
+      .from('posts')
+      .select('author_id')
+      .eq('id', postId)
+      .single();
+
+    if (postError || !post || post.author_id === commentAuthorId) {
+      // 게시글이 없거나 본인이 댓글을 작성한 경우는 알림 생성하지 않음
+      return false;
+    }
+
+    // 게시글 작성자에게 댓글 알림 생성
+    const { error } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: post.author_id,
+        type: 'comment',
+        title: `새 댓글: ${postTitle}`,
+        content: '🗨️ 회원님의 게시글에 새로운 댓글이 달렸습니다.',
+        priority: 'normal',
+        related_id: postId
+      });
+
+    if (error) {
+      console.error('댓글 알림 생성 오류:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('댓글 알림 생성 실패:', error);
+    return false;
+  }
+}
+
+// 키워드 알림 생성
+export async function createKeywordNotification(
+  keyword: string,
+  postId: number,
+  postTitle: string,
+  targetUserIds: number[]
+): Promise<boolean> {
+  try {
+    const notifications = targetUserIds.map(userId => ({
+      user_id: userId,
+      type: 'keyword_alert',
+      title: `키워드 알림: "${keyword}"`,
+      content: `관심 키워드 "${keyword}"가 포함된 새 게시글이 등록되었습니다: ${postTitle}`,
+      priority: 'normal',
+      related_id: postId,
+      data: { keyword, post_title: postTitle }
+    }));
+
+    const { error } = await supabase
+      .from('notifications')
+      .insert(notifications);
+
+    if (error) {
+      console.error('키워드 알림 생성 오류:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('키워드 알림 생성 실패:', error);
+    return false;
+  }
+}
+
+// 시스템 알림 생성
+export async function createSystemNotification(
+  title: string,
+  content: string,
+  priority: 'urgent' | 'high' | 'normal' | 'low' = 'normal',
+  targetUserIds?: number[]
+): Promise<boolean> {
+  try {
+    let userIds = targetUserIds;
+
+    // 대상이 지정되지 않으면 모든 사용자에게 발송
+    if (!userIds) {
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id');
+
+      if (usersError) {
+        console.error('사용자 목록 조회 오류:', usersError);
+        return false;
+      }
+
+      userIds = users?.map(user => user.id) || [];
+    }
+
+    const notifications = userIds.map(userId => ({
+      user_id: userId,
+      type: 'system',
+      title,
+      content,
+      priority
+    }));
+
+    const { error } = await supabase
+      .from('notifications')
+      .insert(notifications);
+
+    if (error) {
+      console.error('시스템 알림 생성 오류:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('시스템 알림 생성 실패:', error);
+    return false;
+  }
+}
+
+// 실시간 알림 구독 함수
+export function subscribeToNotifications(
+  userId: number,
+  onNewNotification: (notification: Notification) => void,
+  onNotificationUpdate: (notification: Notification) => void
+) {
+  const channel = supabase
+    .channel(`notifications-${userId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        console.log('새 알림 수신:', payload);
+        onNewNotification(payload.new as Notification);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        console.log('알림 업데이트:', payload);
+        onNotificationUpdate(payload.new as Notification);
+      }
+    )
+    .subscribe();
+
+  return channel;
+}
+
+// 알림 구독 해제
+export function unsubscribeFromNotifications(channel: any) {
+  if (channel) {
+    supabase.removeChannel(channel);
   }
 }
