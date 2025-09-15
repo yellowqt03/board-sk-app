@@ -27,13 +27,20 @@ export interface User {
 
 // 로그인 함수 (Supabase 데이터베이스 사용)
 export async function login(credentials: LoginCredentials): Promise<{ user: User | null; error: string | null; tokens?: TokenPair }> {
+  const debugLog: string[] = [];
+
   try {
+    debugLog.push(`🔐 로그인 시작 - 원본 사번: ${credentials.employeeId}`);
+
     // 사번을 4자리 패딩 형식으로 변환 (예: 2 -> 0002)
-    const paddedEmployeeId = credentials.employeeId.padStart(4, '0');
-    
-    
-    // 1. Supabase에서 직원 정보 조회
-    const { data: employee, error: employeeError } = await supabase
+    let paddedEmployeeId = credentials.employeeId.padStart(4, '0');
+    debugLog.push(`📝 패딩된 사번: ${paddedEmployeeId}`);
+
+    console.log('로그인 디버그:', debugLog);
+
+    // 1. Supabase에서 직원 정보 조회 (단순화된 쿼리로 먼저 시도)
+    debugLog.push(`1️⃣ 직원 정보 조회 시작`);
+    let { data: employee, error: employeeError } = await supabase
       .from('employee_master')
       .select(`
         id,
@@ -43,47 +50,89 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
         department_id,
         position_id,
         is_active,
-        status,
-        departments!inner(name),
-        positions!inner(name, level)
+        status
       `)
       .eq('employee_id', paddedEmployeeId)
       .single();
 
+    console.log('직원 조회 결과:', { employee, employeeError });
+    debugLog.push(`📊 직원 조회 결과: ${employee ? `발견 (${employee.name})` : `실패 (${employeeError?.message})`}`);
 
     if (employeeError || !employee) {
-      return { user: null, error: `존재하지 않는 사번입니다. (사번: ${paddedEmployeeId})` };
+      // 원본 사번으로도 시도
+      debugLog.push(`🔄 원본 사번으로 재시도: ${credentials.employeeId}`);
+      const { data: originalEmployee, error: originalError } = await supabase
+        .from('employee_master')
+        .select(`
+          id,
+          employee_id,
+          name,
+          email,
+          department_id,
+          position_id,
+          is_active,
+          status
+        `)
+        .eq('employee_id', credentials.employeeId)
+        .single();
+
+      console.log('원본 사번 조회 결과:', { originalEmployee, originalError });
+
+      if (originalError || !originalEmployee) {
+        console.error('로그인 실패 - 디버그 로그:', debugLog);
+        return { user: null, error: `존재하지 않는 사번입니다. (입력: ${credentials.employeeId}, 패딩: ${paddedEmployeeId})` };
+      } else {
+        // 원본 사번으로 발견된 경우 사용
+        employee = originalEmployee;
+        paddedEmployeeId = credentials.employeeId;
+        debugLog.push(`✅ 원본 사번으로 발견: ${employee.name}`);
+      }
     }
 
     // 2. 활성 사용자인지 확인
+    debugLog.push(`2️⃣ 활성 사용자 확인: ${employee.is_active}`);
     if (!employee.is_active) {
+      console.error('로그인 실패 - 디버그 로그:', debugLog);
       return { user: null, error: '비활성화된 계정입니다.' };
     }
 
     // 3. 승인된 사용자인지 확인
+    debugLog.push(`3️⃣ 승인 상태 확인: ${employee.status}`);
     if (employee.status !== 'approved') {
+      console.error('로그인 실패 - 디버그 로그:', debugLog);
       return { user: null, error: '아직 승인되지 않은 계정입니다.' };
     }
 
     // 4. 사용자 계정 확인
+    debugLog.push(`4️⃣ users 테이블 계정 확인: ${paddedEmployeeId}`);
     const { data: userAccount, error: userError } = await supabase
       .from('users')
       .select('password_hash, role, is_admin, is_super_admin')
       .eq('employee_id', paddedEmployeeId)
       .single();
 
+    console.log('사용자 계정 조회 결과:', { userAccount, userError });
+    debugLog.push(`📊 users 조회 결과: ${userAccount ? '발견' : `실패 (${userError?.message})`}`);
 
     if (userError || !userAccount) {
-      return { user: null, error: `사용자 계정이 존재하지 않습니다. (사번: ${paddedEmployeeId})` };
+      console.error('로그인 실패 - 디버그 로그:', debugLog);
+      return { user: null, error: `사용자 계정이 존재하지 않습니다. (사번: ${paddedEmployeeId}, 오류: ${userError?.message})` };
     }
 
     // 5. 비밀번호 확인 (bcrypt 사용)
+    debugLog.push(`5️⃣ 비밀번호 검증 시작`);
     const isValidPassword = await verifyPassword(credentials.password, userAccount.password_hash);
+    debugLog.push(`🔑 비밀번호 검증 결과: ${isValidPassword}`);
+
     if (!isValidPassword) {
+      console.error('로그인 실패 - 디버그 로그:', debugLog);
       return { user: null, error: '비밀번호가 올바르지 않습니다.' };
     }
 
     // 6. 로그인 성공 - 사용자 정보 반환
+    debugLog.push(`✅ 로그인 성공! 사용자 정보 생성`);
+    console.log('로그인 성공 - 디버그 로그:', debugLog);
+
     const user: User = {
       id: employee.id.toString(),
       employee_id: employee.employee_id,
@@ -111,6 +160,8 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     }
 
   } catch (error) {
+    debugLog.push(`❌ 예외 발생: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('로그인 예외 - 디버그 로그:', debugLog);
     console.error('로그인 오류 상세:', error);
     console.error('오류 타입:', typeof error);
     console.error('오류 메시지:', error instanceof Error ? error.message : 'Unknown error');
