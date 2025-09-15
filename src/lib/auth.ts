@@ -125,11 +125,26 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       return { user: null, error: `사용자 계정이 존재하지 않습니다. (사번: ${paddedEmployeeId}, 오류: ${userError?.message})` };
     }
 
-    // 5. 비밀번호 확인 (bcrypt 사용)
+    // 5. 비밀번호 확인 (bcrypt 사용 또는 평문 비교)
     debugLog.push(`5️⃣ 비밀번호 검증 시작`);
     console.log('🔑 입력된 비밀번호:', credentials.password);
     console.log('🔐 저장된 해시:', userAccount.password_hash);
-    const isValidPassword = await verifyPassword(credentials.password, userAccount.password_hash);
+
+    let isValidPassword = false;
+
+    // bcrypt 해시값인지 확인 (bcrypt 해시는 $2a$, $2b$, $2y$로 시작)
+    if (userAccount.password_hash.startsWith('$2a$') ||
+        userAccount.password_hash.startsWith('$2b$') ||
+        userAccount.password_hash.startsWith('$2y$')) {
+      // bcrypt로 검증
+      isValidPassword = await verifyPassword(credentials.password, userAccount.password_hash);
+      debugLog.push(`🔐 bcrypt 해시 검증 사용`);
+    } else {
+      // 평문으로 비교 (임시 처리)
+      isValidPassword = credentials.password === userAccount.password_hash;
+      debugLog.push(`⚠️ 평문 비교 사용 (보안상 위험 - 해시 저장 필요)`);
+    }
+
     console.log('🔑 비밀번호 검증 결과:', isValidPassword);
     debugLog.push(`🔑 비밀번호 검증 결과: ${isValidPassword}`);
 
