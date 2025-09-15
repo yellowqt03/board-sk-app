@@ -23,6 +23,7 @@ export interface NotificationSettings {
   push_notifications: boolean;
   keyword_alerts: boolean;
   announcement_alerts: boolean;
+  comment_alerts: boolean;
   created_at: string;
 }
 
@@ -178,6 +179,7 @@ export async function updateUserNotificationSettings(
     push_notifications?: boolean;
     keyword_alerts?: boolean;
     announcement_alerts?: boolean;
+    comment_alerts?: boolean;
   }
 ): Promise<boolean> {
   try {
