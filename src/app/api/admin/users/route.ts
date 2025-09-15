@@ -17,9 +17,7 @@ export async function GET(request: NextRequest) {
       .select(`
         employee_id,
         is_admin,
-        is_super_admin,
         created_at,
-        updated_at,
         employee_master!inner(
           name,
           email,
@@ -41,9 +39,8 @@ export async function GET(request: NextRequest) {
     if (role) {
       if (role === 'admin') {
         query = query.eq('is_admin', true);
-      } else if (role === 'super_admin') {
-        query = query.eq('is_super_admin', true);
       }
+      // is_super_admin 컬럼이 없으므로 super_admin 필터링 제거
       // role 컬럼이 없으므로 role 기반 필터링 제거
     }
 
@@ -114,7 +111,8 @@ export async function PATCH(request: NextRequest) {
     // role 컬럼이 없으므로 role 업데이트 제거
     // if (role !== undefined) updateData.role = role;
     if (is_admin !== undefined) updateData.is_admin = is_admin;
-    if (is_super_admin !== undefined) updateData.is_super_admin = is_super_admin;
+    // is_super_admin 컬럼이 없으므로 제거
+    // if (is_super_admin !== undefined) updateData.is_super_admin = is_super_admin;
 
     const { error } = await supabase
       .from('users')

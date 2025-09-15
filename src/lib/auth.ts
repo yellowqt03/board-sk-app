@@ -114,6 +114,7 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     console.log('사용자 계정 조회 결과:', { userAccount, userError });
     if (userAccount) {
       console.log('🔍 users 테이블 스키마 (실제 컬럼들):', Object.keys(userAccount));
+      console.log('🔐 저장된 password_hash:', userAccount.password_hash?.substring(0, 20) + '...');
       debugLog.push(`📊 users 조회 결과: 발견 - 컬럼: [${Object.keys(userAccount).join(', ')}]`);
     } else {
       debugLog.push(`📊 users 조회 결과: 실패 (${userError?.message})`);
@@ -126,7 +127,10 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
 
     // 5. 비밀번호 확인 (bcrypt 사용)
     debugLog.push(`5️⃣ 비밀번호 검증 시작`);
+    console.log('🔑 입력된 비밀번호:', credentials.password);
+    console.log('🔐 저장된 해시:', userAccount.password_hash);
     const isValidPassword = await verifyPassword(credentials.password, userAccount.password_hash);
+    console.log('🔑 비밀번호 검증 결과:', isValidPassword);
     debugLog.push(`🔑 비밀번호 검증 결과: ${isValidPassword}`);
 
     if (!isValidPassword) {
@@ -149,7 +153,7 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       status: employee.status,
       role: 'user', // 기본값으로 설정
       is_admin: userAccount?.is_admin || false,
-      is_super_admin: userAccount?.is_super_admin || false
+      is_super_admin: false // users 테이블에 is_super_admin 컬럼이 없음
     };
 
     
