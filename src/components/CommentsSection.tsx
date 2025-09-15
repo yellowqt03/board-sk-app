@@ -7,9 +7,10 @@ import { getCurrentUser, type User } from '@/lib/auth';
 
 interface CommentsSectionProps {
   postId: number;
+  isAnonymousBoard?: boolean;
 }
 
-export default function CommentsSection({ postId }: CommentsSectionProps) {
+export default function CommentsSection({ postId, isAnonymousBoard = false }: CommentsSectionProps) {
   const [comments, setComments] = useState<CommentWithAuthor[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -241,7 +242,7 @@ export default function CommentsSection({ postId }: CommentsSectionProps) {
                   <div className="flex items-center gap-2">
                     {isReply && <span className="text-blue-600">↳</span>}
                     <span className="font-medium text-gray-900">
-                      {comment.author.name}
+                      {isAnonymousBoard ? '익명' : comment.author.name}
                     </span>
                     <span className="text-sm text-gray-500">
                       {formatTimeAgo(comment.created_at)}

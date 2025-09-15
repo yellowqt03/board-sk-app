@@ -18,6 +18,9 @@ export interface User {
   position_id: string;
   is_active: boolean;
   status: string;
+  role?: string;
+  is_admin?: boolean;
+  is_super_admin?: boolean;
 }
 
 // 실제 Supabase 데이터베이스 사용
@@ -65,7 +68,7 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
     // 4. 사용자 계정 확인
     const { data: userAccount, error: userError } = await supabase
       .from('users')
-      .select('password_hash')
+      .select('password_hash, role, is_admin, is_super_admin')
       .eq('employee_id', paddedEmployeeId)
       .single();
 
@@ -89,7 +92,10 @@ export async function login(credentials: LoginCredentials): Promise<{ user: User
       department_id: employee.department_id?.toString() || '',
       position_id: employee.position_id?.toString() || '',
       is_active: employee.is_active,
-      status: employee.status
+      status: employee.status,
+      role: userAccount.role || 'user',
+      is_admin: userAccount.is_admin || false,
+      is_super_admin: userAccount.is_super_admin || false
     };
 
     
@@ -169,21 +175,74 @@ export function isLoggedIn(): boolean {
   return !!user;
 }
 
-// 관리자 권한 확인
+// 최고 관리자 권한 확인
+export function isSuperAdmin(user: User | null = null): boolean {
+  const currentUser = user || getCurrentUser();
+  if (!currentUser) return false;
+
+  return currentUser.is_super_admin === true;
+}
+
+// 관리자 권한 확인 (일반 관리자 + 최고 관리자)
 export function isAdmin(user: User | null = null): boolean {
   const currentUser = user || getCurrentUser();
   if (!currentUser) return false;
-  
-  // TODO: 실제 관리자 권한 로직 구현
-  // 예: position_id가 특정 값이거나 특별한 권한을 가진 경우
-  return currentUser.position_id === '5'; // 임원급
+
+  return currentUser.is_admin === true || currentUser.is_super_admin === true;
+}
+
+// 중간 관리자 권한 확인
+export function isModerator(user: User | null = null): boolean {
+  const currentUser = user || getCurrentUser();
+  if (!currentUser) return false;
+
+  return currentUser.role === 'moderator' || isAdmin(currentUser);
 }
 
 // 부서장 권한 확인
 export function isDepartmentHead(user: User | null = null): boolean {
   const currentUser = user || getCurrentUser();
   if (!currentUser) return false;
-  
-  // TODO: 실제 부서장 권한 로직 구현
-  return currentUser.position_id === '4'; // 부장급
+
+  return currentUser.position_id === '4' || isAdmin(currentUser); // 부장급 + 관리자
+}
+
+// 권한 레벨 확인
+export function hasPermission(requiredRole: string, user: User | null = null): boolean {
+  const currentUser = user || getCurrentUser();
+  if (!currentUser) return false;
+
+  const roleHierarchy = ['user', 'moderator', 'admin', 'super_admin'];
+  const userRoleIndex = roleHierarchy.indexOf(currentUser.role || 'user');
+  const requiredRoleIndex = roleHierarchy.indexOf(requiredRole);
+
+  return userRoleIndex >= requiredRoleIndex;
+}
+
+// 비밀번호 변경 함수
+export async function changePassword(employeeId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch('/api/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        employeeId,
+        currentPassword,
+        newPassword
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { success: false, message: data.message || '비밀번호 변경에 실패했습니다.' };
+    }
+
+    return { success: true, message: data.message || '비밀번호가 성공적으로 변경되었습니다.' };
+  } catch (error) {
+    console.error('비밀번호 변경 오류:', error);
+    return { success: false, message: '네트워크 오류가 발생했습니다.' };
+  }
 }

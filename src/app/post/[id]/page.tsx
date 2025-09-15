@@ -210,37 +210,43 @@ export default function PostDetailPage() {
 
             {/* 반응 버튼 */}
             <div className="px-6 py-4 bg-gray-50 border-t">
-              <div className="flex items-center justify-center space-x-8">
-                <button 
+              <div className="flex items-center justify-center space-x-2 sm:space-x-8">
+                <button
                   onClick={() => handleVote('like')}
                   disabled={voting}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${getVoteButtonStyle(userVote, 'like', voting)}`}
+                  className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base ${getVoteButtonStyle(userVote, 'like', voting)}`}
                 >
                   <span>👍</span>
-                  <span>
+                  <span className="hidden sm:inline">
                     {voting ? '처리 중...' : `좋아요 (${post.likes})`}
                   </span>
-                </button>
-                <button 
-                  onClick={() => handleVote('dislike')}
-                  disabled={voting}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${getVoteButtonStyle(userVote, 'dislike', voting)}`}
-                >
-                  <span>👎</span>
-                  <span>
-                    {voting ? '처리 중...' : `싫어요 (${post.dislikes})`}
+                  <span className="sm:hidden">
+                    {voting ? '...' : post.likes}
                   </span>
                 </button>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  onClick={() => handleVote('dislike')}
+                  disabled={voting}
+                  className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base ${getVoteButtonStyle(userVote, 'dislike', voting)}`}
+                >
+                  <span>👎</span>
+                  <span className="hidden sm:inline">
+                    {voting ? '처리 중...' : `싫어요 (${post.dislikes})`}
+                  </span>
+                  <span className="sm:hidden">
+                    {voting ? '...' : post.dislikes}
+                  </span>
+                </button>
+                <button className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors text-sm sm:text-base">
                   <span>💬</span>
-                  <span>댓글</span>
+                  <span className="hidden sm:inline">댓글</span>
                 </button>
               </div>
             </div>
 
             {/* 댓글 섹션 */}
             <div className="px-6 py-4 border-t">
-              <CommentsSection postId={post.id} />
+              <CommentsSection postId={post.id} isAnonymousBoard={post.category_id >= 4 && post.category_id <= 7} />
             </div>
 
             {/* 게시글 푸터 */}
