@@ -3,25 +3,33 @@ import { supabase } from '@/lib/supabase';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
+  const debugInfo: any[] = [];
+
   try {
+    debugInfo.push('🔧 권한 시스템 및 관리자 계정 설정 시작...');
     console.log('권한 시스템 및 관리자 계정 설정 시작...');
 
-    // 1. users 테이블에 role 컬럼 추가 (있으면 무시)
-    try {
-      await supabase.rpc('add_role_column_if_not_exists');
-    } catch (error) {
-      // 함수가 없으면 직접 실행
-      console.log('role 컬럼 추가 시도...');
+    // 1. 먼저 users 테이블 구조 확인
+    debugInfo.push('📊 현재 users 테이블 구조 확인...');
+    const { data: tableInfo, error: tableError } = await supabase
+      .from('users')
+      .select('*')
+      .limit(1);
+
+    if (tableError) {
+      debugInfo.push(`❌ users 테이블 접근 오류: ${tableError.message}`);
+      return NextResponse.json({
+        success: false,
+        message: 'users 테이블에 접근할 수 없습니다.',
+        debug: debugInfo,
+        error: tableError
+      });
     }
 
-    // 2. users 테이블에 is_super_admin 컬럼 추가 (있으면 무시)
-    try {
-      await supabase.rpc('add_super_admin_column_if_not_exists');
-    } catch (error) {
-      console.log('is_super_admin 컬럼 추가 시도...');
-    }
+    debugInfo.push('✅ users 테이블 접근 성공');
 
-    // 3. 김민혁(사번 1475) 직원 정보 확인
+    // 2. 김민혁(사번 1475) 직원 정보 확인
+    debugInfo.push('👤 김민혁(사번 1475) 직원 정보 확인...');
     const { data: employee, error: empError } = await supabase
       .from('employee_master')
       .select('employee_id, name, is_active, status')
@@ -29,26 +37,33 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (empError || !employee) {
+      debugInfo.push(`❌ 김민혁 직원 정보 찾기 실패: ${empError?.message || '데이터 없음'}`);
       return NextResponse.json({
         success: false,
         message: '김민혁(사번 1475) 직원 정보를 찾을 수 없습니다.',
         details: 'employee_master 테이블에 해당 사원이 없습니다.',
+        debug: debugInfo,
         error: empError
       });
     }
 
+    debugInfo.push(`✅ 김민혁 직원 정보 확인: 활성=${employee.is_active}, 상태=${employee.status}`);
+
     if (!employee.is_active || employee.status !== 'approved') {
+      debugInfo.push(`❌ 김민혁 직원 상태 문제: 활성=${employee.is_active}, 상태=${employee.status}`);
       return NextResponse.json({
         success: false,
         message: '김민혁 직원이 비활성화되었거나 승인되지 않은 상태입니다.',
-        employee_status: { is_active: employee.is_active, status: employee.status }
+        employee_status: { is_active: employee.is_active, status: employee.status },
+        debug: debugInfo
       });
     }
 
-    // 4. 기존 사용자 계정 확인
+    // 3. 기존 사용자 계정 확인
+    debugInfo.push('🔍 기존 사용자 계정 확인...');
     const { data: existingUser, error: userError } = await supabase
       .from('users')
-      .select('employee_id, role, is_admin, is_super_admin')
+      .select('employee_id, password_hash')
       .eq('employee_id', '1475')
       .single();
 
@@ -56,6 +71,7 @@ export async function POST(request: NextRequest) {
 
     if (userError && userError.code === 'PGRST116') {
       // 사용자 계정이 없으면 생성
+      debugInfo.push('➕ 김민혁 사용자 계정 생성 중...');
       console.log('김민혁 사용자 계정 생성 중...');
 
       const defaultPassword = 'admin123';
@@ -69,87 +85,60 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString()
       };
 
-      // role과 is_super_admin 컬럼이 존재하면 추가
       try {
         const { data: newUser, error: createError } = await supabase
           .from('users')
-          .insert({
-            ...insertData,
-            role: 'super_admin',
-            is_admin: true,
-            is_super_admin: true
-          })
+          .insert(insertData)
           .select()
           .single();
 
         if (createError) {
-          // role 컬럼이 없으면 기본 정보만으로 생성
-          const { data: basicUser, error: basicError } = await supabase
-            .from('users')
-            .insert(insertData)
-            .select()
-            .single();
-
-          if (basicError) {
-            throw basicError;
-          }
-          userAccount = basicUser;
-          console.log('기본 사용자 계정 생성 완료');
-        } else {
-          userAccount = newUser;
-          console.log('권한 포함 사용자 계정 생성 완료');
+          debugInfo.push(`❌ 사용자 계정 생성 실패: ${createError.message}`);
+          return NextResponse.json({
+            success: false,
+            message: '사용자 계정 생성 중 오류가 발생했습니다.',
+            debug: debugInfo,
+            error: createError
+          });
         }
+
+        userAccount = newUser;
+        debugInfo.push('✅ 기본 사용자 계정 생성 완료');
+        console.log('기본 사용자 계정 생성 완료');
+
       } catch (error) {
+        debugInfo.push(`❌ 계정 생성 예외: ${error}`);
         return NextResponse.json({
           success: false,
           message: '사용자 계정 생성 중 오류가 발생했습니다.',
+          debug: debugInfo,
           error: error
         });
       }
     } else if (existingUser) {
-      // 기존 계정이 있으면 권한 업데이트 시도
-      console.log('기존 계정 발견, 권한 업데이트 시도...');
-
-      try {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            role: 'super_admin',
-            is_admin: true,
-            is_super_admin: true,
-            updated_at: new Date().toISOString()
-          })
-          .eq('employee_id', '1475');
-
-        if (updateError) {
-          console.log('권한 업데이트 실패, 기존 계정 유지:', updateError);
-        } else {
-          console.log('권한 업데이트 성공');
-        }
-      } catch (error) {
-        console.log('권한 업데이트 중 오류:', error);
-      }
-
+      debugInfo.push('✅ 기존 계정 발견');
       userAccount = existingUser;
     } else {
+      debugInfo.push(`❌ 사용자 계정 조회 오류: ${userError?.message}`);
       return NextResponse.json({
         success: false,
         message: '사용자 계정 조회 중 오류가 발생했습니다.',
+        debug: debugInfo,
         error: userError
       });
     }
 
-    // 5. 결과 반환
+    // 4. 결과 반환
+    debugInfo.push('🎉 시스템 설정 완료');
     return NextResponse.json({
       success: true,
       message: '시스템 설정이 완료되었습니다.',
+      debug: debugInfo,
       data: {
         employee_info: employee,
         user_account: {
           employee_id: userAccount.employee_id,
-          role: userAccount.role || 'user',
-          is_admin: userAccount.is_admin || false,
-          is_super_admin: userAccount.is_super_admin || false
+          created: userAccount.created_at
         },
         login_credentials: {
           employee_id: '1475',
@@ -160,10 +149,12 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    debugInfo.push(`❌ 예외 발생: ${error instanceof Error ? error.message : 'Unknown error'}`);
     console.error('시스템 설정 오류:', error);
     return NextResponse.json({
       success: false,
       message: '시스템 설정 중 오류가 발생했습니다.',
+      debug: debugInfo,
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

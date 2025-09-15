@@ -83,6 +83,20 @@ export default function SetupAdminPage() {
                 </div>
               </div>
 
+              {/* 성공 시에도 디버그 정보 표시 */}
+              {result.debug && result.debug.length > 0 && (
+                <details className="bg-gray-50 p-3 rounded border">
+                  <summary className="text-sm font-medium text-gray-700 cursor-pointer">설정 과정 보기</summary>
+                  <div className="mt-2 text-xs font-mono space-y-1">
+                    {result.debug.map((item: string, index: number) => (
+                      <div key={index} className="text-gray-600">
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+
               <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
                 <p className="text-xs text-yellow-800">
                   ⚠️ {result.data.login_credentials.note}
@@ -104,9 +118,31 @@ export default function SetupAdminPage() {
         {result && !result.success && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <h3 className="text-red-800 font-medium mb-2">❌ 설정 실패</h3>
-            <p className="text-red-700 text-sm">{result.message}</p>
+            <p className="text-red-700 text-sm mb-3">{result.message}</p>
             {result.details && (
-              <p className="text-red-600 text-xs mt-1">{result.details}</p>
+              <p className="text-red-600 text-xs mb-3">{result.details}</p>
+            )}
+
+            {/* 디버그 정보 표시 */}
+            {result.debug && result.debug.length > 0 && (
+              <div className="mt-3 p-3 bg-gray-100 rounded text-xs">
+                <h4 className="font-medium text-gray-800 mb-2">디버그 정보:</h4>
+                <div className="space-y-1 font-mono">
+                  {result.debug.map((item: string, index: number) => (
+                    <div key={index} className="text-gray-700">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 오류 상세 정보 */}
+            {result.error && (
+              <div className="mt-3 p-2 bg-red-100 rounded text-xs">
+                <h4 className="font-medium text-red-800 mb-1">오류 상세:</h4>
+                <pre className="text-red-700 whitespace-pre-wrap">{JSON.stringify(result.error, null, 2)}</pre>
+              </div>
             )}
           </div>
         )}
