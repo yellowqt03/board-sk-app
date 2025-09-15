@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
       .from('users')
       .select(`
         employee_id,
-        role,
         is_admin,
         is_super_admin,
         created_at,
@@ -44,9 +43,8 @@ export async function GET(request: NextRequest) {
         query = query.eq('is_admin', true);
       } else if (role === 'super_admin') {
         query = query.eq('is_super_admin', true);
-      } else {
-        query = query.eq('role', role);
       }
+      // role 컬럼이 없으므로 role 기반 필터링 제거
     }
 
     // 페이지네이션 적용
@@ -113,7 +111,8 @@ export async function PATCH(request: NextRequest) {
       updated_at: new Date().toISOString()
     };
 
-    if (role !== undefined) updateData.role = role;
+    // role 컬럼이 없으므로 role 업데이트 제거
+    // if (role !== undefined) updateData.role = role;
     if (is_admin !== undefined) updateData.is_admin = is_admin;
     if (is_super_admin !== undefined) updateData.is_super_admin = is_super_admin;
 
